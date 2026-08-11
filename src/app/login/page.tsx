@@ -13,6 +13,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/";
 
+  const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -25,13 +26,13 @@ function LoginForm() {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ username, password }),
     });
 
     setLoading(false);
 
     if (!res.ok) {
-      setError("Incorrect password.");
+      setError("Incorrect username or password.");
       return;
     }
 
@@ -53,20 +54,30 @@ function LoginForm() {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="password">Site password</Label>
+        <Label htmlFor="username">Username</Label>
+        <Input
+          id="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoFocus
+          autoComplete="username"
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="password">Password</Label>
         <Input
           id="password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          autoFocus
           autoComplete="current-password"
         />
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <Button type="submit" disabled={loading || !password}>
+      <Button type="submit" disabled={loading || !username || !password}>
         {loading ? <Loader2 className="size-4 animate-spin" /> : "Sign in"}
       </Button>
     </form>
