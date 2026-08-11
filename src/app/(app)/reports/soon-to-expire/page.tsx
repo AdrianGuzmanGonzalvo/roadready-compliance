@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { ComplianceBadge, DriverStatusBadge } from "@/components/drivers/compliance-badge";
+import { filterByCompanyRoster } from "@/lib/scope";
 import { FORM_FIELD_DEFS } from "@/types/driver";
 import type { DriverStatusValue, FormFieldKey } from "@/types/driver";
 
@@ -21,6 +22,8 @@ const WIDE_WINDOW_DAYS = 3650; // fetch a broad window; days-remaining filters n
 export default function SoonToExpireReportPage() {
   const { data: drivers, isLoading, isError } = useDrivers();
   const openDriver = useUIStore((s) => s.openDriver);
+  const companyFilter = useUIStore((s) => s.companyFilter);
+  const rosterFilter = useUIStore((s) => s.rosterFilter);
 
   const [statusFilter, setStatusFilter] = React.useState<Record<DriverStatusValue, boolean>>({
     ACTIVE: true,
@@ -46,8 +49,8 @@ export default function SoonToExpireReportPage() {
 
   const scoped = React.useMemo(() => {
     if (!drivers) return [];
-    return drivers.filter((d) => statusFilter[d.status]);
-  }, [drivers, statusFilter]);
+    return filterByCompanyRoster(drivers, companyFilter, rosterFilter).filter((d) => statusFilter[d.status]);
+  }, [drivers, companyFilter, rosterFilter, statusFilter]);
 
   const allEntries = React.useMemo(() => getDueSoonEntries(scoped, WIDE_WINDOW_DAYS), [scoped]);
 
@@ -82,6 +85,13 @@ export default function SoonToExpireReportPage() {
           <p className="text-sm text-neutral-500">
             Compliance forms due soon or already overdue. Filter by driver, status, form, due date, or days
             remaining.
+            {companyFilter !== "ALL" && (
+              <span className="text-neutral-400">
+                {" "}
+                · Scoped to {companyFilter}
+                {rosterFilter !== "ALL" ? ` / ${rosterFilter}` : ""}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2 print:hidden">
@@ -198,6 +208,7 @@ export default function SoonToExpireReportPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Driver</TableHead>
+                  <TableHead>Company / Roster</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Form</TableHead>
                   <TableHead>Due Date</TableHead>
@@ -207,7 +218,7 @@ export default function SoonToExpireReportPage() {
               <TableBody>
                 {entries.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-neutral-400 py-10">
+                    <TableCell colSpan={6} className="text-center text-neutral-400 py-10">
                       No items match the current filters.
                     </TableCell>
                   </TableRow>
@@ -220,6 +231,10 @@ export default function SoonToExpireReportPage() {
                   >
                     <TableCell className="font-medium text-neutral-900">
                       {entry.lastName}, {entry.firstName}
+                    </TableCell>
+                    <TableCell className="text-neutral-500">
+                      {entry.company ?? "—"}
+                      {entry.roster ? ` / ${entry.roster}` : ""}
                     </TableCell>
                     <TableCell>
                       <DriverStatusBadge status={entry.driverStatus} />

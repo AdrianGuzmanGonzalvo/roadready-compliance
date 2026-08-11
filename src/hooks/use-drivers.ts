@@ -23,6 +23,8 @@ export interface UpdateDriverPayload {
       DriverDTO,
       | "pfl"
       | "clientId"
+      | "company"
+      | "roster"
       | "lastName"
       | "firstName"
       | "phone"
@@ -69,6 +71,8 @@ export interface CreateDriverPayload {
   firstName: string;
   status: DriverStatusValue;
   clientId?: string;
+  company?: string;
+  roster?: string;
   phone?: string;
   position?: string;
   driversLicense?: string;

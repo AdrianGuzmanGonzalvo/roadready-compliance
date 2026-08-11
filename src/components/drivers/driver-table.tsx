@@ -15,6 +15,7 @@ export function DriverTable({ drivers }: { drivers: DriverDTO[] }) {
       <TableHeader>
         <TableRow>
           <TableHead>Driver</TableHead>
+          <TableHead>Company / Roster</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Position</TableHead>
           <TableHead>Phone</TableHead>
@@ -25,7 +26,7 @@ export function DriverTable({ drivers }: { drivers: DriverDTO[] }) {
       <TableBody>
         {drivers.length === 0 && (
           <TableRow>
-            <TableCell colSpan={6} className="text-center text-neutral-400 py-10">
+            <TableCell colSpan={7} className="text-center text-neutral-400 py-10">
               No drivers match the current filters.
             </TableCell>
           </TableRow>
@@ -36,6 +37,10 @@ export function DriverTable({ drivers }: { drivers: DriverDTO[] }) {
             <TableRow key={driver.id} className="cursor-pointer" onClick={() => openDriver(driver.id)}>
               <TableCell className="font-medium text-neutral-900">
                 {driver.lastName}, {driver.firstName}
+              </TableCell>
+              <TableCell className="text-neutral-500">
+                {driver.company ?? "—"}
+                {driver.roster ? ` / ${driver.roster}` : ""}
               </TableCell>
               <TableCell>
                 <StatusQuickSelect

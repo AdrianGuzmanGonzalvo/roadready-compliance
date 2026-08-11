@@ -97,6 +97,8 @@ export interface DueSoonEntry {
   driverId: string;
   lastName: string;
   firstName: string;
+  company: string | null;
+  roster: string | null;
   driverStatus: DriverDTO["status"];
   formKey: FormFieldKey;
   formLabel: string;
@@ -127,6 +129,8 @@ export function getDueSoonEntries(
         driverId: driver.id,
         lastName: driver.lastName,
         firstName: driver.firstName,
+        company: driver.company,
+        roster: driver.roster,
         driverStatus: driver.status,
         formKey: key,
         formLabel: label,

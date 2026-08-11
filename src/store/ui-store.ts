@@ -14,6 +14,12 @@ interface UIState {
   formFilter: FormFieldKey | "ALL";
   setFormFilter: (key: FormFieldKey | "ALL") => void;
 
+  /** Global scope applied to the Dashboard, Reports, and Drivers list. "ALL" means unrestricted. */
+  companyFilter: string;
+  setCompanyFilter: (company: string) => void;
+  rosterFilter: string;
+  setRosterFilter: (roster: string) => void;
+
   windowFilter: WindowFilter;
   setWindowFilter: (w: WindowFilter) => void;
 
@@ -37,6 +43,11 @@ export const useUIStore = create<UIState>((set) => ({
 
   formFilter: "ALL",
   setFormFilter: (formFilter) => set({ formFilter }),
+
+  companyFilter: "ALL",
+  setCompanyFilter: (companyFilter) => set({ companyFilter, rosterFilter: "ALL" }),
+  rosterFilter: "ALL",
+  setRosterFilter: (rosterFilter) => set({ rosterFilter }),
 
   windowFilter: "ALL",
   setWindowFilter: (windowFilter) => set({ windowFilter }),

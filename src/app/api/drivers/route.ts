@@ -28,6 +28,8 @@ export async function POST(req: Request) {
       firstName,
       status,
       clientId: body.clientId || null,
+      company: body.company || null,
+      roster: body.roster || null,
       phone: body.phone || null,
       position: body.position || null,
       driversLicense: body.driversLicense || null,

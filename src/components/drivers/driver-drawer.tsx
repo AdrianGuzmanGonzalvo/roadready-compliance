@@ -42,6 +42,8 @@ export function DriverDrawer() {
   const [status, setStatus] = React.useState<DriverStatusValue>("ACTIVE");
   const [identity, setIdentity] = React.useState({
     clientId: "",
+    company: "",
+    roster: "",
     phone: "",
     position: "",
     driversLicense: "",
@@ -58,6 +60,8 @@ export function DriverDrawer() {
     setStatus(driver.status);
     setIdentity({
       clientId: driver.clientId ?? "",
+      company: driver.company ?? "",
+      roster: driver.roster ?? "",
       phone: driver.phone ?? "",
       position: driver.position ?? "",
       driversLicense: driver.driversLicense ?? "",
@@ -125,6 +129,13 @@ export function DriverDrawer() {
           </div>
           <SheetDescription>
             {driver.position ?? "Driver"} · License {driver.driversLicense ?? "—"} · SSN {driver.ssn ?? "—"}
+            {(driver.company || driver.roster) && (
+              <>
+                {" "}
+                · {driver.company ?? "—"}
+                {driver.roster ? ` / ${driver.roster}` : ""}
+              </>
+            )}
           </SheetDescription>
         </SheetHeader>
 
@@ -144,6 +155,20 @@ export function DriverDrawer() {
               </Select>
             </div>
 
+            <div className="space-y-1.5">
+              <Label>Company</Label>
+              <Input
+                value={identity.company}
+                onChange={(e) => setIdentity((s) => ({ ...s, company: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Roster</Label>
+              <Input
+                value={identity.roster}
+                onChange={(e) => setIdentity((s) => ({ ...s, roster: e.target.value }))}
+              />
+            </div>
             <div className="space-y-1.5">
               <Label>Client ID</Label>
               <Input

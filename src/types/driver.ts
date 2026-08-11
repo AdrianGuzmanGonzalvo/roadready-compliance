@@ -79,6 +79,8 @@ export interface DriverDTO {
   id: string;
   pfl: string | null;
   clientId: string | null;
+  company: string | null;
+  roster: string | null;
   lastName: string;
   firstName: string;
   phone: string | null;

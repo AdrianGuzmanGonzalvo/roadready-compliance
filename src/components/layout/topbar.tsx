@@ -4,9 +4,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { Search, UploadCloud, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { CompanyRosterFilter } from "@/components/layout/company-roster-filter";
 import { useUIStore } from "@/store/ui-store";
 import { useDrivers } from "@/hooks/use-drivers";
 import { overallStatus } from "@/lib/compliance";
+import { filterByCompanyRoster } from "@/lib/scope";
 
 export function TopBar() {
   const pathname = usePathname();
@@ -14,10 +16,14 @@ export function TopBar() {
   const search = useUIStore((s) => s.search);
   const setSearch = useUIStore((s) => s.setSearch);
   const setUploadOpen = useUIStore((s) => s.setUploadOpen);
+  const companyFilter = useUIStore((s) => s.companyFilter);
+  const rosterFilter = useUIStore((s) => s.rosterFilter);
   const { data: drivers } = useDrivers();
 
-  const expiredCount =
-    drivers?.filter((d) => d.status === "ACTIVE" && overallStatus(d.complianceForm) === "expired").length ?? 0;
+  const scoped = drivers ? filterByCompanyRoster(drivers, companyFilter, rosterFilter) : [];
+  const expiredCount = scoped.filter(
+    (d) => d.status === "ACTIVE" && overallStatus(d.complianceForm) === "expired"
+  ).length;
 
   function handleSearchChange(value: string) {
     setSearch(value);
@@ -35,6 +41,8 @@ export function TopBar() {
           className="pl-8"
         />
       </div>
+
+      <CompanyRosterFilter />
 
       <div className="flex-1" />
 

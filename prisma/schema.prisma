@@ -27,6 +27,8 @@ model Driver {
   id                String       @id @default(uuid())
   pfl               String?
   clientId          String? // "Client ID" from roster-style imports (distinct from driversLicense)
+  company           String? // organization/client the driver is categorized under
+  roster            String? // site/roster code within a company, e.g. "PREK"
   lastName          String
   firstName         String
   phone             String?
@@ -50,6 +52,7 @@ model Driver {
 
   @@index([lastName, firstName])
   @@index([status])
+  @@index([company, roster])
 }
 
 model ComplianceForm {

@@ -33,6 +33,8 @@ function toRow(driver: DriverDTO): Record<string, string | number> {
     "Last Name": driver.lastName,
     "First Name": driver.firstName,
     Status: driver.status,
+    Company: driver.company ?? "",
+    Roster: driver.roster ?? "",
     "Client ID": driver.clientId ?? "",
     Phone: driver.phone ?? "",
     Position: driver.position ?? "",
@@ -66,6 +68,8 @@ function toDueSoonRow(entry: DueSoonEntry): Record<string, string | number> {
   return {
     "Last Name": entry.lastName,
     "First Name": entry.firstName,
+    Company: entry.company ?? "",
+    Roster: entry.roster ?? "",
     "Driver Status": entry.driverStatus,
     Form: entry.formLabel,
     "Due Date": fmt(entry.date),

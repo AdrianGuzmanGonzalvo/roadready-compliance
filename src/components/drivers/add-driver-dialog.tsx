@@ -22,6 +22,8 @@ const EMPTY = {
   lastName: "",
   firstName: "",
   clientId: "",
+  company: "",
+  roster: "",
   phone: "",
   position: "",
   driversLicense: "",
@@ -35,6 +37,8 @@ export function AddDriverDialog() {
   const open = useUIStore((s) => s.addDriverOpen);
   const setOpen = useUIStore((s) => s.setAddDriverOpen);
   const openDriver = useUIStore((s) => s.openDriver);
+  const companyFilter = useUIStore((s) => s.companyFilter);
+  const rosterFilter = useUIStore((s) => s.rosterFilter);
   const createDriver = useCreateDriver();
 
   const [status, setStatus] = React.useState<DriverStatusValue>("ACTIVE");
@@ -42,8 +46,17 @@ export function AddDriverDialog() {
 
   function reset() {
     setStatus("ACTIVE");
-    setFields(EMPTY);
+    setFields({
+      ...EMPTY,
+      company: companyFilter === "ALL" ? "" : companyFilter,
+      roster: rosterFilter === "ALL" ? "" : rosterFilter,
+    });
   }
+
+  React.useEffect(() => {
+    if (open) reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function handleCreate() {
     if (!fields.lastName.trim() || !fields.firstName.trim()) return;
@@ -107,6 +120,14 @@ export function AddDriverDialog() {
             </Select>
           </div>
 
+          <div className="space-y-1.5">
+            <Label>Company</Label>
+            <Input value={fields.company} onChange={(e) => setFields((s) => ({ ...s, company: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Roster</Label>
+            <Input value={fields.roster} onChange={(e) => setFields((s) => ({ ...s, roster: e.target.value }))} />
+          </div>
           <div className="space-y-1.5">
             <Label>Client ID</Label>
             <Input value={fields.clientId} onChange={(e) => setFields((s) => ({ ...s, clientId: e.target.value }))} />

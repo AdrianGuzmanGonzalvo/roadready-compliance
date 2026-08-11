@@ -10,6 +10,7 @@ import { DriverTable } from "@/components/drivers/driver-table";
 import { Card, CardContent } from "@/components/ui/card";
 import { statusForDate } from "@/lib/compliance";
 import { exportDriversToXlsx, exportDriversToCsv } from "@/lib/export";
+import { filterByCompanyRoster } from "@/lib/scope";
 import type { DriverDTO, FormFieldKey } from "@/types/driver";
 
 function SyncStatusFromUrl() {
@@ -35,6 +36,8 @@ function matchesSearch(driver: DriverDTO, query: string): boolean {
     `${driver.firstName} ${driver.lastName}`.toLowerCase().includes(q) ||
     (driver.driversLicense?.toLowerCase().includes(q) ?? false) ||
     (driver.clientId?.toLowerCase().includes(q) ?? false) ||
+    (driver.company?.toLowerCase().includes(q) ?? false) ||
+    (driver.roster?.toLowerCase().includes(q) ?? false) ||
     (driver.phone?.toLowerCase().includes(q) ?? false)
   );
 }
@@ -45,10 +48,16 @@ export default function DriversPage() {
   const search = useUIStore((s) => s.search);
   const formFilter = useUIStore((s) => s.formFilter);
   const windowFilter = useUIStore((s) => s.windowFilter);
+  const companyFilter = useUIStore((s) => s.companyFilter);
+  const rosterFilter = useUIStore((s) => s.rosterFilter);
+
+  const scoped = useMemo(
+    () => (drivers ? filterByCompanyRoster(drivers, companyFilter, rosterFilter) : []),
+    [drivers, companyFilter, rosterFilter]
+  );
 
   const filtered = useMemo(() => {
-    if (!drivers) return [];
-    return drivers.filter((driver) => {
+    return scoped.filter((driver) => {
       if (statusTab !== "ALL" && driver.status !== statusTab) return false;
       if (!matchesSearch(driver, search)) return false;
 
@@ -65,7 +74,7 @@ export default function DriversPage() {
 
       return true;
     });
-  }, [drivers, statusTab, search, formFilter, windowFilter]);
+  }, [scoped, statusTab, search, formFilter, windowFilter]);
 
   return (
     <div className="flex flex-col gap-4 max-w-[1400px]">
@@ -95,7 +104,7 @@ export default function DriversPage() {
         <>
           <DriverFilters
             filteredCount={filtered.length}
-            totalCount={drivers.length}
+            totalCount={scoped.length}
             onExportXlsx={() => exportDriversToXlsx(filtered)}
             onExportCsv={() => exportDriversToCsv(filtered)}
           />

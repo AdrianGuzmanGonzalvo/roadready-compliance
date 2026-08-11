@@ -6,6 +6,8 @@ import { DRIVER_STATUSES, FORM_FIELD_DEFS } from "@/types/driver";
 const DRIVER_TEXT_FIELDS = [
   "pfl",
   "clientId",
+  "company",
+  "roster",
   "lastName",
   "firstName",
   "phone",
