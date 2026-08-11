@@ -21,12 +21,14 @@ import type { DriverStatusValue } from "@/types/driver";
 const EMPTY = {
   lastName: "",
   firstName: "",
+  clientId: "",
   phone: "",
   position: "",
   driversLicense: "",
   licenseClass: "",
   endorsements: "",
   restrictions: "",
+  note: "",
 };
 
 export function AddDriverDialog() {
@@ -106,6 +108,10 @@ export function AddDriverDialog() {
           </div>
 
           <div className="space-y-1.5">
+            <Label>Client ID</Label>
+            <Input value={fields.clientId} onChange={(e) => setFields((s) => ({ ...s, clientId: e.target.value }))} />
+          </div>
+          <div className="space-y-1.5">
             <Label>Phone</Label>
             <Input value={fields.phone} onChange={(e) => setFields((s) => ({ ...s, phone: e.target.value }))} />
           </div>
@@ -144,6 +150,10 @@ export function AddDriverDialog() {
               value={fields.restrictions}
               onChange={(e) => setFields((s) => ({ ...s, restrictions: e.target.value }))}
             />
+          </div>
+          <div className="col-span-2 space-y-1.5">
+            <Label>Note</Label>
+            <Input value={fields.note} onChange={(e) => setFields((s) => ({ ...s, note: e.target.value }))} />
           </div>
         </div>
 

@@ -5,6 +5,7 @@ import { DRIVER_STATUSES, FORM_FIELD_DEFS } from "@/types/driver";
 
 const DRIVER_TEXT_FIELDS = [
   "pfl",
+  "clientId",
   "lastName",
   "firstName",
   "phone",
@@ -14,6 +15,7 @@ const DRIVER_TEXT_FIELDS = [
   "endorsements",
   "restrictions",
   "updateResult",
+  "note",
   "medicalCondition",
   "bpFollowUp",
   "diabeticFollowUp",

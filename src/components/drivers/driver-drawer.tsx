@@ -41,12 +41,14 @@ export function DriverDrawer() {
 
   const [status, setStatus] = React.useState<DriverStatusValue>("ACTIVE");
   const [identity, setIdentity] = React.useState({
+    clientId: "",
     phone: "",
     position: "",
     driversLicense: "",
     licenseClass: "",
     endorsements: "",
     restrictions: "",
+    note: "",
   });
   const [formDates, setFormDates] = React.useState<Record<string, string>>(EMPTY_FORM);
 
@@ -54,14 +56,17 @@ export function DriverDrawer() {
     if (!driver) return;
     setStatus(driver.status);
     setIdentity({
+      clientId: driver.clientId ?? "",
       phone: driver.phone ?? "",
       position: driver.position ?? "",
       driversLicense: driver.driversLicense ?? "",
       licenseClass: driver.licenseClass ?? "",
       endorsements: driver.endorsements ?? "",
       restrictions: driver.restrictions ?? "",
+      note: driver.note ?? "",
     });
     setFormDates({
+      pptXray: toDateInputValue(driver.complianceForm?.pptXray ?? null),
       mcsa5876: toDateInputValue(driver.complianceForm?.mcsa5876 ?? null),
       ds703: toDateInputValue(driver.complianceForm?.ds703 ?? null),
       ds704: toDateInputValue(driver.complianceForm?.ds704 ?? null),
@@ -138,6 +143,13 @@ export function DriverDrawer() {
             </div>
 
             <div className="space-y-1.5">
+              <Label>Client ID</Label>
+              <Input
+                value={identity.clientId}
+                onChange={(e) => setIdentity((s) => ({ ...s, clientId: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
               <Label>Phone</Label>
               <Input value={identity.phone} onChange={(e) => setIdentity((s) => ({ ...s, phone: e.target.value }))} />
             </div>
@@ -175,6 +187,10 @@ export function DriverDrawer() {
                 value={identity.restrictions}
                 onChange={(e) => setIdentity((s) => ({ ...s, restrictions: e.target.value }))}
               />
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <Label>Note</Label>
+              <Input value={identity.note} onChange={(e) => setIdentity((s) => ({ ...s, note: e.target.value }))} />
             </div>
           </section>
 

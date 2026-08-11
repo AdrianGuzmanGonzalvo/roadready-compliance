@@ -22,6 +22,7 @@ export interface UpdateDriverPayload {
     Pick<
       DriverDTO,
       | "pfl"
+      | "clientId"
       | "lastName"
       | "firstName"
       | "phone"
@@ -33,6 +34,7 @@ export interface UpdateDriverPayload {
       | "endorsements"
       | "restrictions"
       | "updateResult"
+      | "note"
       | "medicalCondition"
       | "bpFollowUp"
       | "diabeticFollowUp"
@@ -66,12 +68,14 @@ export interface CreateDriverPayload {
   lastName: string;
   firstName: string;
   status: DriverStatusValue;
+  clientId?: string;
   phone?: string;
   position?: string;
   driversLicense?: string;
   licenseClass?: string;
   endorsements?: string;
   restrictions?: string;
+  note?: string;
 }
 
 async function createDriver(payload: CreateDriverPayload): Promise<DriverDTO> {

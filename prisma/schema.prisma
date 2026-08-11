@@ -19,6 +19,7 @@ enum DriverStatus {
 model Driver {
   id                String       @id @default(uuid())
   pfl               String?
+  clientId          String? // "Client ID" from roster-style imports (distinct from driversLicense)
   lastName          String
   firstName         String
   phone             String?
@@ -31,6 +32,7 @@ model Driver {
   restrictions      String?
   status            DriverStatus @default(ACTIVE)
   updateResult      String?
+  note              String? // free-text remark, e.g. from a roster's NOTE column
   medicalCondition  String?
   bpFollowUp        String?
   diabeticFollowUp  String?
@@ -48,6 +50,7 @@ model ComplianceForm {
   driverId String @unique
   driver   Driver @relation(fields: [driverId], references: [id], onDelete: Cascade)
 
+  pptXray    DateTime? // Passport / X-Ray
   mcsa5876   DateTime? // Medical Examiner Certificate
   ds703      DateTime? // Medical Examination Report
   ds704      DateTime? // Physical Fitness Certification

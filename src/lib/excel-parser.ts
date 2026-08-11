@@ -31,6 +31,7 @@ export interface ParsedDriverFields {
 }
 
 export interface ParsedComplianceFields {
+  pptXray: Date | null;
   mcsa5876: Date | null;
   ds703: Date | null;
   ds704: Date | null;
@@ -128,6 +129,7 @@ function parsePrimeRow(row: unknown[]): ParsedDriverRecord | null {
   };
 
   const form: ParsedComplianceFields = {
+    pptXray: null,
     mcsa5876: toDate(row[13]),
     ds703: null,
     ds704: null,
@@ -237,6 +239,7 @@ export function parseDriverWorkbook(data: ArrayBuffer | Buffer): ParseResult {
             diabeticFollowUp: null,
           },
           form: {
+            pptXray: null,
             mcsa5876: null,
             ds703: null,
             ds704: null,

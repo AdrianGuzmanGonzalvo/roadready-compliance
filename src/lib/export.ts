@@ -33,6 +33,7 @@ function toRow(driver: DriverDTO): Record<string, string | number> {
     "Last Name": driver.lastName,
     "First Name": driver.firstName,
     Status: driver.status,
+    "Client ID": driver.clientId ?? "",
     Phone: driver.phone ?? "",
     Position: driver.position ?? "",
     "Driver's License": driver.driversLicense ?? "",
@@ -40,6 +41,7 @@ function toRow(driver: DriverDTO): Record<string, string | number> {
     Endorsements: driver.endorsements ?? "",
     Restrictions: driver.restrictions ?? "",
     DOB: fmt(driver.dob),
+    Note: driver.note ?? "",
   };
 
   for (const f of FORM_FIELD_DEFS) {

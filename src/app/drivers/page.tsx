@@ -34,6 +34,7 @@ function matchesSearch(driver: DriverDTO, query: string): boolean {
     driver.firstName.toLowerCase().includes(q) ||
     `${driver.firstName} ${driver.lastName}`.toLowerCase().includes(q) ||
     (driver.driversLicense?.toLowerCase().includes(q) ?? false) ||
+    (driver.clientId?.toLowerCase().includes(q) ?? false) ||
     (driver.phone?.toLowerCase().includes(q) ?? false)
   );
 }

@@ -10,6 +10,7 @@ function toIso(d: Date | null | undefined): string | null {
 export function serializeDriver(driver: DriverWithForm): DriverDTO {
   const form: ComplianceFormDTO | null = driver.complianceForm
     ? {
+        pptXray: toIso(driver.complianceForm.pptXray),
         mcsa5876: toIso(driver.complianceForm.mcsa5876),
         ds703: toIso(driver.complianceForm.ds703),
         ds704: toIso(driver.complianceForm.ds704),
@@ -26,6 +27,7 @@ export function serializeDriver(driver: DriverWithForm): DriverDTO {
   return {
     id: driver.id,
     pfl: driver.pfl,
+    clientId: driver.clientId,
     lastName: driver.lastName,
     firstName: driver.firstName,
     phone: driver.phone,
@@ -38,6 +40,7 @@ export function serializeDriver(driver: DriverWithForm): DriverDTO {
     restrictions: driver.restrictions,
     status: driver.status,
     updateResult: driver.updateResult,
+    note: driver.note,
     medicalCondition: driver.medicalCondition,
     bpFollowUp: driver.bpFollowUp,
     diabeticFollowUp: driver.diabeticFollowUp,

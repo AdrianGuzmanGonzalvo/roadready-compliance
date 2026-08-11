@@ -2,6 +2,7 @@ export const DRIVER_STATUSES = ["ACTIVE", "INACTIVE", "TERMINATED"] as const;
 export type DriverStatusValue = (typeof DRIVER_STATUSES)[number];
 
 export const FORM_FIELD_DEFS = [
+  { key: "pptXray", label: "PPT/X-RAY", description: "Passport / X-Ray" },
   { key: "mcsa5876", label: "MCSA-5876", description: "Medical Examiner Certificate" },
   { key: "ds703", label: "DS-703", description: "Medical Examination Report" },
   { key: "ds704", label: "DS-704", description: "Physical Fitness Certification" },
@@ -16,6 +17,7 @@ export const FORM_FIELD_DEFS = [
 export type FormFieldKey = (typeof FORM_FIELD_DEFS)[number]["key"];
 
 export interface ComplianceFormDTO {
+  pptXray: string | null;
   mcsa5876: string | null;
   ds703: string | null;
   ds704: string | null;
@@ -31,6 +33,7 @@ export interface ComplianceFormDTO {
 export interface DriverDTO {
   id: string;
   pfl: string | null;
+  clientId: string | null;
   lastName: string;
   firstName: string;
   phone: string | null;
@@ -43,6 +46,7 @@ export interface DriverDTO {
   restrictions: string | null;
   status: DriverStatusValue;
   updateResult: string | null;
+  note: string | null;
   medicalCondition: string | null;
   bpFollowUp: string | null;
   diabeticFollowUp: string | null;
