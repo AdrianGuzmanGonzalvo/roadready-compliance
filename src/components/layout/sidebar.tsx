@@ -1,28 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, UserX, UploadCloud, Settings, ShieldCheck } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { LayoutDashboard, Users, UserMinus, UserX, UploadCloud, FileBarChart, Settings, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/drivers?status=ACTIVE", label: "Active Drivers", icon: Users, match: "/drivers", statusParam: "ACTIVE" },
+  { href: "/drivers?status=ACTIVE", label: "Active Drivers", icon: Users, match: "/drivers", status: "ACTIVE" },
+  {
+    href: "/drivers?status=INACTIVE",
+    label: "Inactive Drivers",
+    icon: UserMinus,
+    match: "/drivers",
+    status: "INACTIVE",
+  },
   {
     href: "/drivers?status=TERMINATED",
     label: "Terminated Drivers",
     icon: UserX,
     match: "/drivers",
-    statusParam: "TERMINATED",
+    status: "TERMINATED",
   },
+  { href: "/reports", label: "Reports", icon: FileBarChart, match: "/reports" },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const setUploadOpen = useUIStore((s) => s.setUploadOpen);
+  const currentStatus = searchParams.get("status");
 
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-neutral-200 bg-white">
@@ -37,7 +47,9 @@ export function Sidebar() {
       <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = item.match ? pathname === item.match : pathname === item.href;
+          const active = item.match
+            ? pathname.startsWith(item.match) && ("status" in item ? currentStatus === item.status : true)
+            : pathname === item.href;
           return (
             <Link
               key={item.label}

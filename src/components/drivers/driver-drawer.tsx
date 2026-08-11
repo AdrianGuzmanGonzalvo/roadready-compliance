@@ -131,8 +131,8 @@ export function DriverDrawer() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="INACTIVE">Inactive</SelectItem>
                   <SelectItem value="TERMINATED">Terminated</SelectItem>
-                  <SelectItem value="OUT_OF_WORK">Out of Work</SelectItem>
                 </SelectContent>
               </Select>
             </div>

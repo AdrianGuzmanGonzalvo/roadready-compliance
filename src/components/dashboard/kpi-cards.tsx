@@ -1,4 +1,5 @@
 import type { ElementType } from "react";
+import Link from "next/link";
 import { Users, AlertOctagon, Clock, CalendarClock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -15,15 +16,17 @@ function Kpi({
   value,
   sub,
   accent,
+  href,
 }: {
   icon: ElementType;
   label: string;
   value: number;
   sub?: string;
   accent: string;
+  href?: string;
 }) {
-  return (
-    <Card>
+  const card = (
+    <Card className={href ? "transition-colors hover:border-neutral-300" : undefined}>
       <CardContent className="p-5 flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-neutral-500">{label}</p>
@@ -36,6 +39,7 @@ function Kpi({
       </CardContent>
     </Card>
   );
+  return href ? <Link href={href}>{card}</Link> : card;
 }
 
 export function KpiCards({ drivers }: KpiCardsProps) {
@@ -58,6 +62,7 @@ export function KpiCards({ drivers }: KpiCardsProps) {
         value={summary.expired}
         sub="Action required now"
         accent="bg-red-50 text-red-600"
+        href="/reports/soon-to-expire"
       />
       <Kpi
         icon={Clock}
@@ -65,6 +70,7 @@ export function KpiCards({ drivers }: KpiCardsProps) {
         value={summary.expiring30}
         sub="Action required soon"
         accent="bg-amber-50 text-amber-600"
+        href="/reports/soon-to-expire"
       />
       <Kpi
         icon={CalendarClock}

@@ -152,7 +152,7 @@ function parseTrackerRow(
   if (!lastName || !firstName) return null;
 
   const drop = cellStr(row, 20);
-  const resolvedStatus: DriverStatusValue = status === "TERMINATED" ? "TERMINATED" : drop ? "OUT_OF_WORK" : "ACTIVE";
+  const resolvedStatus: DriverStatusValue = status === "TERMINATED" ? "TERMINATED" : drop ? "INACTIVE" : "ACTIVE";
 
   return {
     key: normalizeKey(lastName, firstName),

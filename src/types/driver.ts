@@ -1,4 +1,4 @@
-export const DRIVER_STATUSES = ["ACTIVE", "TERMINATED", "OUT_OF_WORK"] as const;
+export const DRIVER_STATUSES = ["ACTIVE", "INACTIVE", "TERMINATED"] as const;
 export type DriverStatusValue = (typeof DRIVER_STATUSES)[number];
 
 export const FORM_FIELD_DEFS = [

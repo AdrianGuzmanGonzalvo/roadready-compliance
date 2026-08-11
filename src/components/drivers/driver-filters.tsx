@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Download, FileSpreadsheet } from "lucide-react";
+import { Search, Download, FileSpreadsheet, UserPlus } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ export function DriverFilters({ filteredCount, totalCount, onExportXlsx, onExpor
   const setFormFilter = useUIStore((s) => s.setFormFilter);
   const windowFilter = useUIStore((s) => s.windowFilter);
   const setWindowFilter = useUIStore((s) => s.setWindowFilter);
+  const setAddDriverOpen = useUIStore((s) => s.setAddDriverOpen);
 
   return (
     <div className="flex flex-col gap-3">
@@ -37,6 +38,7 @@ export function DriverFilters({ filteredCount, totalCount, onExportXlsx, onExpor
         <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as typeof statusTab)}>
           <TabsList>
             <TabsTrigger value="ACTIVE">Active Drivers</TabsTrigger>
+            <TabsTrigger value="INACTIVE">Inactive Drivers</TabsTrigger>
             <TabsTrigger value="TERMINATED">Terminated Drivers</TabsTrigger>
             <TabsTrigger value="ALL">All Records</TabsTrigger>
           </TabsList>
@@ -50,6 +52,10 @@ export function DriverFilters({ filteredCount, totalCount, onExportXlsx, onExpor
           <Button variant="outline" size="sm" onClick={onExportXlsx}>
             <FileSpreadsheet className="size-4" />
             Excel
+          </Button>
+          <Button size="sm" onClick={() => setAddDriverOpen(true)}>
+            <UserPlus className="size-4" />
+            Add Driver
           </Button>
         </div>
       </div>

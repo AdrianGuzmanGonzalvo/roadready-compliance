@@ -210,7 +210,7 @@ const drivers = [
   {
     lastName: "Thompson",
     firstName: "Pat",
-    status: "OUT_OF_WORK" as const,
+    status: "INACTIVE" as const,
     position: "ON CALL DRIVER",
     phone: "555-010-1010",
     driversLicense: "D1002242",

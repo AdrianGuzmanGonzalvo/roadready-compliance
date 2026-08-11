@@ -62,6 +62,39 @@ export function useUpdateDriver() {
   });
 }
 
+export interface CreateDriverPayload {
+  lastName: string;
+  firstName: string;
+  status: DriverStatusValue;
+  phone?: string;
+  position?: string;
+  driversLicense?: string;
+  licenseClass?: string;
+  endorsements?: string;
+  restrictions?: string;
+}
+
+async function createDriver(payload: CreateDriverPayload): Promise<DriverDTO> {
+  const res = await fetch("/api/drivers", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to create driver");
+  return data.driver;
+}
+
+export function useCreateDriver() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createDriver,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: DRIVERS_KEY });
+    },
+  });
+}
+
 export interface ImportResponse {
   created: number;
   updated: number;

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { FormFieldKey } from "@/types/driver";
 
-export type StatusTab = "ACTIVE" | "TERMINATED" | "ALL";
+export type StatusTab = "ACTIVE" | "INACTIVE" | "TERMINATED" | "ALL";
 export type WindowFilter = "ALL" | "expired" | "30" | "60";
 
 interface UIState {
@@ -23,6 +23,9 @@ interface UIState {
 
   uploadOpen: boolean;
   setUploadOpen: (open: boolean) => void;
+
+  addDriverOpen: boolean;
+  setAddDriverOpen: (open: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -44,4 +47,7 @@ export const useUIStore = create<UIState>((set) => ({
 
   uploadOpen: false,
   setUploadOpen: (uploadOpen) => set({ uploadOpen }),
+
+  addDriverOpen: false,
+  setAddDriverOpen: (addDriverOpen) => set({ addDriverOpen }),
 }));

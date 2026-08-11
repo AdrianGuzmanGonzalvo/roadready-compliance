@@ -1,5 +1,5 @@
 import { differenceInCalendarDays } from "date-fns";
-import { FORM_FIELD_DEFS, type ComplianceFormDTO, type FormFieldKey } from "@/types/driver";
+import { FORM_FIELD_DEFS, type ComplianceFormDTO, type DriverDTO, type FormFieldKey } from "@/types/driver";
 
 export type ComplianceStatus = "expired" | "expiring_30" | "expiring_60" | "compliant" | "missing";
 
@@ -91,6 +91,52 @@ export interface FormExpirySummary {
   expiring30: number;
   expiring60: number;
   compliant: number;
+}
+
+export interface DueSoonEntry {
+  driverId: string;
+  lastName: string;
+  firstName: string;
+  driverStatus: DriverDTO["status"];
+  formKey: FormFieldKey;
+  formLabel: string;
+  date: string;
+  daysRemaining: number;
+  status: "expired" | "expiring_30";
+}
+
+/**
+ * Flat, one-row-per-due-form list of every compliance form due within
+ * `withinDays` (including already-overdue forms), sorted most urgent first.
+ * Used by the Soon to Expire report.
+ */
+export function getDueSoonEntries(
+  drivers: DriverDTO[],
+  withinDays = 30,
+  now: Date = new Date()
+): DueSoonEntry[] {
+  const entries: DueSoonEntry[] = [];
+  for (const driver of drivers) {
+    if (!driver.complianceForm) continue;
+    for (const { key, label } of FORM_FIELD_DEFS) {
+      const value = driver.complianceForm[key as FormFieldKey];
+      if (!value) continue;
+      const days = daysRemaining(value, now);
+      if (days === null || days > withinDays) continue;
+      entries.push({
+        driverId: driver.id,
+        lastName: driver.lastName,
+        firstName: driver.firstName,
+        driverStatus: driver.status,
+        formKey: key,
+        formLabel: label,
+        date: value,
+        daysRemaining: days,
+        status: days < 0 ? "expired" : "expiring_30",
+      });
+    }
+  }
+  return entries.sort((a, b) => a.daysRemaining - b.daysRemaining);
 }
 
 /** Tally form-level (not driver-level) expiry counts across a set of drivers' compliance forms. */

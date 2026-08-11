@@ -18,7 +18,7 @@ function SyncStatusFromUrl() {
 
   useEffect(() => {
     const status = searchParams.get("status");
-    if (status === "ACTIVE" || status === "TERMINATED" || status === "ALL") {
+    if (status === "ACTIVE" || status === "INACTIVE" || status === "TERMINATED" || status === "ALL") {
       setStatusTab(status);
     }
   }, [searchParams, setStatusTab]);

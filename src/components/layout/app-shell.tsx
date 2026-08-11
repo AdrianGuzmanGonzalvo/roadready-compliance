@@ -1,18 +1,21 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Settings } from "lucide-react";
+import { LayoutDashboard, Users, FileBarChart, Settings } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/topbar";
 import { UploadDialog } from "@/components/upload/upload-dialog";
 import { DriverDrawer } from "@/components/drivers/driver-drawer";
+import { AddDriverDialog } from "@/components/drivers/add-driver-dialog";
 import { cn } from "@/lib/utils";
 
 const mobileNav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/drivers?status=ACTIVE", label: "Drivers", icon: Users, match: "/drivers" },
+  { href: "/reports", label: "Reports", icon: FileBarChart, match: "/reports" },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -21,13 +24,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-neutral-50">
-      <Sidebar />
+      <Suspense fallback={<div className="hidden md:block w-60 shrink-0 border-r border-neutral-200 bg-white" />}>
+        <Sidebar />
+      </Suspense>
       <div className="flex flex-1 flex-col min-w-0">
         <TopBar />
         <nav className="flex md:hidden items-center justify-around border-b border-neutral-200 bg-white h-12">
           {mobileNav.map((item) => {
             const Icon = item.icon;
-            const active = item.match ? pathname === item.match : pathname === item.href;
+            const active = item.match ? pathname.startsWith(item.match) : pathname === item.href;
             return (
               <Link
                 key={item.label}
@@ -47,6 +52,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <UploadDialog />
+      <AddDriverDialog />
       <DriverDrawer />
     </div>
   );

@@ -29,16 +29,16 @@ export function ComplianceBadge({ date, compact = false }: { date: string | null
   );
 }
 
-export function DriverStatusBadge({ status }: { status: "ACTIVE" | "TERMINATED" | "OUT_OF_WORK" }) {
+export function DriverStatusBadge({ status }: { status: "ACTIVE" | "INACTIVE" | "TERMINATED" }) {
   const styles: Record<string, string> = {
     ACTIVE: "bg-emerald-50 text-emerald-700 border-emerald-200",
     TERMINATED: "bg-neutral-100 text-neutral-500 border-neutral-200",
-    OUT_OF_WORK: "bg-amber-50 text-amber-700 border-amber-200",
+    INACTIVE: "bg-amber-50 text-amber-700 border-amber-200",
   };
   const labels: Record<string, string> = {
     ACTIVE: "Active",
     TERMINATED: "Terminated",
-    OUT_OF_WORK: "Out of Work",
+    INACTIVE: "Inactive",
   };
   return (
     <span className={cn("inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium", styles[status])}>
