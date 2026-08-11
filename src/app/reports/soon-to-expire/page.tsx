@@ -1,33 +1,77 @@
 "use client";
 
 import * as React from "react";
-import { Loader2, Download, FileSpreadsheet, Printer } from "lucide-react";
+import { Loader2, Download, FileSpreadsheet, Printer, Search, X } from "lucide-react";
 import { useDrivers } from "@/hooks/use-drivers";
 import { useUIStore } from "@/store/ui-store";
 import { getDueSoonEntries } from "@/lib/compliance";
 import { exportDueSoonToXlsx, exportDueSoonToCsv } from "@/lib/export";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { ComplianceBadge, DriverStatusBadge } from "@/components/drivers/compliance-badge";
+import { FORM_FIELD_DEFS } from "@/types/driver";
+import type { DriverStatusValue, FormFieldKey } from "@/types/driver";
+
+const STATUS_OPTIONS: DriverStatusValue[] = ["ACTIVE", "INACTIVE", "TERMINATED"];
+const WIDE_WINDOW_DAYS = 3650; // fetch a broad window; days-remaining filters narrow it below
 
 export default function SoonToExpireReportPage() {
   const { data: drivers, isLoading, isError } = useDrivers();
   const openDriver = useUIStore((s) => s.openDriver);
-  const [includeInactive, setIncludeInactive] = React.useState(false);
-  const [includeTerminated, setIncludeTerminated] = React.useState(false);
+
+  const [statusFilter, setStatusFilter] = React.useState<Record<DriverStatusValue, boolean>>({
+    ACTIVE: true,
+    INACTIVE: false,
+    TERMINATED: false,
+  });
+  const [search, setSearch] = React.useState("");
+  const [formFilter, setFormFilter] = React.useState<FormFieldKey | "ALL">("ALL");
+  const [dueFrom, setDueFrom] = React.useState("");
+  const [dueTo, setDueTo] = React.useState("");
+  const [daysMin, setDaysMin] = React.useState("");
+  const [daysMax, setDaysMax] = React.useState("30");
+
+  function resetFilters() {
+    setStatusFilter({ ACTIVE: true, INACTIVE: false, TERMINATED: false });
+    setSearch("");
+    setFormFilter("ALL");
+    setDueFrom("");
+    setDueTo("");
+    setDaysMin("");
+    setDaysMax("30");
+  }
 
   const scoped = React.useMemo(() => {
     if (!drivers) return [];
-    return drivers.filter((d) => {
-      if (d.status === "ACTIVE") return true;
-      if (d.status === "INACTIVE") return includeInactive;
-      if (d.status === "TERMINATED") return includeTerminated;
+    return drivers.filter((d) => statusFilter[d.status]);
+  }, [drivers, statusFilter]);
+
+  const allEntries = React.useMemo(() => getDueSoonEntries(scoped, WIDE_WINDOW_DAYS), [scoped]);
+
+  const entries = React.useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const min = daysMin === "" ? null : Number(daysMin);
+    const max = daysMax === "" ? null : Number(daysMax);
+    const from = dueFrom ? new Date(dueFrom) : null;
+    const to = dueTo ? new Date(dueTo) : null;
+
+    return allEntries.filter((entry) => {
+      if (formFilter !== "ALL" && entry.formKey !== formFilter) return false;
+      if (min !== null && entry.daysRemaining < min) return false;
+      if (max !== null && entry.daysRemaining > max) return false;
+      if (from && new Date(entry.date) < from) return false;
+      if (to && new Date(entry.date) > to) return false;
+      if (q) {
+        const name = `${entry.firstName} ${entry.lastName}`.toLowerCase();
+        if (!name.includes(q)) return false;
+      }
       return true;
     });
-  }, [drivers, includeInactive, includeTerminated]);
+  }, [allEntries, formFilter, daysMin, daysMax, dueFrom, dueTo, search]);
 
-  const entries = React.useMemo(() => getDueSoonEntries(scoped, 30), [scoped]);
   const expiredCount = entries.filter((e) => e.status === "expired").length;
 
   return (
@@ -36,7 +80,8 @@ export default function SoonToExpireReportPage() {
         <div>
           <h1 className="text-xl font-semibold text-neutral-900">Soon to Expire Report</h1>
           <p className="text-sm text-neutral-500">
-            Every compliance form due within 30 days (including any already overdue), most urgent first.
+            Compliance forms due soon or already overdue. Filter by driver, status, form, due date, or days
+            remaining.
           </p>
         </div>
         <div className="flex items-center gap-2 print:hidden">
@@ -55,29 +100,82 @@ export default function SoonToExpireReportPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-sm print:hidden">
-        <label className="flex items-center gap-1.5 text-neutral-600">
-          <input
-            type="checkbox"
-            checked={includeInactive}
-            onChange={(e) => setIncludeInactive(e.target.checked)}
-            className="size-3.5"
-          />
-          Include inactive drivers
-        </label>
-        <label className="flex items-center gap-1.5 text-neutral-600">
-          <input
-            type="checkbox"
-            checked={includeTerminated}
-            onChange={(e) => setIncludeTerminated(e.target.checked)}
-            className="size-3.5"
-          />
-          Include terminated drivers
-        </label>
-        <span className="ml-auto text-xs text-neutral-400">
-          {entries.length} item{entries.length === 1 ? "" : "s"}
-          {expiredCount > 0 ? ` · ${expiredCount} already expired` : ""}
-        </span>
+      <div className="flex flex-col gap-3 print:hidden">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[200px] max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Filter by driver name..."
+              className="pl-8"
+            />
+          </div>
+
+          <Select value={formFilter} onValueChange={(v) => setFormFilter(v as typeof formFilter)}>
+            <SelectTrigger className="w-[190px]">
+              <SelectValue placeholder="Form" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Forms</SelectItem>
+              {FORM_FIELD_DEFS.map((f) => (
+                <SelectItem key={f.key} value={f.key}>
+                  {f.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="flex items-center gap-1.5">
+            <label className="text-xs text-neutral-500">Due date</label>
+            <Input type="date" value={dueFrom} onChange={(e) => setDueFrom(e.target.value)} className="w-[145px]" />
+            <span className="text-neutral-300">–</span>
+            <Input type="date" value={dueTo} onChange={(e) => setDueTo(e.target.value)} className="w-[145px]" />
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <label className="text-xs text-neutral-500">Days remaining</label>
+            <Input
+              type="number"
+              value={daysMin}
+              onChange={(e) => setDaysMin(e.target.value)}
+              placeholder="min"
+              className="w-[80px]"
+            />
+            <span className="text-neutral-300">–</span>
+            <Input
+              type="number"
+              value={daysMax}
+              onChange={(e) => setDaysMax(e.target.value)}
+              placeholder="max"
+              className="w-[80px]"
+            />
+          </div>
+
+          <Button variant="ghost" size="sm" onClick={resetFilters}>
+            <X className="size-4" />
+            Reset
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          {STATUS_OPTIONS.map((status) => (
+            <label key={status} className="flex items-center gap-1.5 text-sm text-neutral-600">
+              <input
+                type="checkbox"
+                checked={statusFilter[status]}
+                onChange={(e) => setStatusFilter((s) => ({ ...s, [status]: e.target.checked }))}
+                className="size-3.5"
+              />
+              {status === "ACTIVE" ? "Active" : status === "INACTIVE" ? "Inactive" : "Terminated"} drivers
+            </label>
+          ))}
+
+          <span className="ml-auto text-xs text-neutral-400">
+            {entries.length} item{entries.length === 1 ? "" : "s"}
+            {expiredCount > 0 ? ` · ${expiredCount} already expired` : ""}
+          </span>
+        </div>
       </div>
 
       {isLoading && (
@@ -110,7 +208,7 @@ export default function SoonToExpireReportPage() {
                 {entries.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-neutral-400 py-10">
-                      Nothing due within 30 days. All clear.
+                      No items match the current filters.
                     </TableCell>
                   </TableRow>
                 )}
