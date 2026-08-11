@@ -118,6 +118,23 @@ export function useDeleteDriver() {
   });
 }
 
+async function deleteDrivers(ids: string[]): Promise<void> {
+  const results = await Promise.all(
+    ids.map((id) => fetch(`/api/drivers/${id}`, { method: "DELETE" }).then((res) => res.ok))
+  );
+  if (results.some((ok) => !ok)) throw new Error("Some drivers failed to delete");
+}
+
+export function useDeleteDrivers() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteDrivers,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: DRIVERS_KEY });
+    },
+  });
+}
+
 export interface ImportResponse {
   created: number;
   updated: number;
