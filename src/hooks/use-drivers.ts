@@ -135,6 +135,35 @@ export function useDeleteDrivers() {
   });
 }
 
+export interface BulkAssignCompanyRosterPayload {
+  ids: string[];
+  company: string;
+  roster: string;
+}
+
+async function bulkAssignCompanyRoster({ ids, company, roster }: BulkAssignCompanyRosterPayload): Promise<void> {
+  const results = await Promise.all(
+    ids.map((id) =>
+      fetch(`/api/drivers/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ driver: { company, roster } }),
+      }).then((res) => res.ok)
+    )
+  );
+  if (results.some((ok) => !ok)) throw new Error("Some drivers failed to update");
+}
+
+export function useBulkAssignCompanyRoster() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: bulkAssignCompanyRoster,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: DRIVERS_KEY });
+    },
+  });
+}
+
 export interface ImportResponse {
   created: number;
   updated: number;

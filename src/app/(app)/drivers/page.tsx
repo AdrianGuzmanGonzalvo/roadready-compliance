@@ -3,11 +3,12 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, Trash2, X } from "lucide-react";
+import { Loader2, Trash2, Building2, X } from "lucide-react";
 import { useDrivers, useDeleteDrivers } from "@/hooks/use-drivers";
 import { useUIStore } from "@/store/ui-store";
 import { DriverFilters } from "@/components/drivers/driver-filters";
 import { DriverTable } from "@/components/drivers/driver-table";
+import { AssignCompanyRosterDialog } from "@/components/drivers/assign-company-roster-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { statusForDate } from "@/lib/compliance";
@@ -55,6 +56,7 @@ export default function DriversPage() {
   const deleteDrivers = useDeleteDrivers();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
 
   useEffect(() => {
     setSelectedIds(new Set());
@@ -147,10 +149,14 @@ export default function DriversPage() {
           />
 
           {selectedIds.size > 0 && (
-            <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2">
-              <span className="text-sm font-medium text-red-800">
+            <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2">
+              <span className="text-sm font-medium text-neutral-800">
                 {selectedIds.size} driver{selectedIds.size === 1 ? "" : "s"} selected
               </span>
+              <Button size="sm" variant="outline" onClick={() => setAssignDialogOpen(true)}>
+                <Building2 className="size-4" />
+                Assign Company / Roster
+              </Button>
               <Button
                 size="sm"
                 variant="outline"
@@ -180,6 +186,13 @@ export default function DriversPage() {
           </Card>
         </>
       )}
+
+      <AssignCompanyRosterDialog
+        open={assignDialogOpen}
+        onOpenChange={setAssignDialogOpen}
+        driverIds={Array.from(selectedIds)}
+        onApplied={() => setSelectedIds(new Set())}
+      />
     </div>
   );
 }
