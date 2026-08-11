@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -17,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ComplianceBadge, DriverStatusBadge } from "@/components/drivers/compliance-badge";
 import { CompanyRosterFields } from "@/components/companies/company-roster-fields";
 import { useUIStore } from "@/store/ui-store";
-import { useDrivers, useUpdateDriver } from "@/hooks/use-drivers";
+import { useDrivers, useUpdateDriver, useDeleteDriver } from "@/hooks/use-drivers";
 import { FORM_FIELD_DEFS } from "@/types/driver";
 import type { ComplianceFormDTO, DriverStatusValue } from "@/types/driver";
 
@@ -37,6 +38,7 @@ export function DriverDrawer() {
   const closeDriver = useUIStore((s) => s.closeDriver);
   const { data: drivers } = useDrivers();
   const updateDriver = useUpdateDriver();
+  const deleteDriver = useDeleteDriver();
 
   const driver = drivers?.find((d) => d.id === selectedDriverId) ?? null;
 
@@ -116,6 +118,20 @@ export function DriverDrawer() {
         onError: () => toast.error("Failed to save changes"),
       }
     );
+  }
+
+  function handleDelete() {
+    if (!driver) return;
+    const name = `${driver.firstName} ${driver.lastName}`;
+    if (!window.confirm(`Delete ${name}? This permanently removes their record and compliance dates.`)) return;
+
+    deleteDriver.mutate(driver.id, {
+      onSuccess: () => {
+        toast.success(`Deleted ${name}`);
+        closeDriver();
+      },
+      onError: () => toast.error("Failed to delete driver"),
+    });
   }
 
   return (
@@ -246,13 +262,24 @@ export function DriverDrawer() {
           </section>
         </SheetBody>
 
-        <div className="flex justify-end gap-2 border-t border-neutral-100 pt-4">
-          <Button variant="outline" onClick={closeDriver}>
-            Cancel
+        <div className="flex items-center justify-between gap-2 border-t border-neutral-100 pt-4">
+          <Button
+            variant="ghost"
+            onClick={handleDelete}
+            disabled={deleteDriver.isPending}
+            className="text-red-600 hover:bg-red-50 hover:text-red-700"
+          >
+            <Trash2 className="size-4" />
+            {deleteDriver.isPending ? "Deleting..." : "Delete Driver"}
           </Button>
-          <Button onClick={handleSave} disabled={updateDriver.isPending}>
-            {updateDriver.isPending ? "Saving..." : "Save Changes"}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={closeDriver}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={updateDriver.isPending}>
+              {updateDriver.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

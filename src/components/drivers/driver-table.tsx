@@ -1,14 +1,30 @@
 "use client";
 
+import type { MouseEvent } from "react";
+import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { ComplianceBadge } from "@/components/drivers/compliance-badge";
 import { StatusQuickSelect } from "@/components/drivers/status-quick-select";
 import { useUIStore } from "@/store/ui-store";
+import { useDeleteDriver } from "@/hooks/use-drivers";
 import { nextExpiringForm } from "@/lib/compliance";
 import type { DriverDTO } from "@/types/driver";
 
 export function DriverTable({ drivers }: { drivers: DriverDTO[] }) {
   const openDriver = useUIStore((s) => s.openDriver);
+  const deleteDriver = useDeleteDriver();
+
+  function handleDelete(e: MouseEvent, driver: DriverDTO) {
+    e.stopPropagation();
+    const name = `${driver.firstName} ${driver.lastName}`;
+    if (!window.confirm(`Delete ${name}? This permanently removes their record and compliance dates.`)) return;
+    deleteDriver.mutate(driver.id, {
+      onSuccess: () => toast.success(`Deleted ${name}`),
+      onError: () => toast.error("Failed to delete driver"),
+    });
+  }
 
   return (
     <Table>
@@ -21,12 +37,13 @@ export function DriverTable({ drivers }: { drivers: DriverDTO[] }) {
           <TableHead>Phone</TableHead>
           <TableHead>License #</TableHead>
           <TableHead>Next Due</TableHead>
+          <TableHead className="w-9" />
         </TableRow>
       </TableHeader>
       <TableBody>
         {drivers.length === 0 && (
           <TableRow>
-            <TableCell colSpan={7} className="text-center text-neutral-400 py-10">
+            <TableCell colSpan={8} className="text-center text-neutral-400 py-10">
               No drivers match the current filters.
             </TableCell>
           </TableRow>
@@ -61,6 +78,17 @@ export function DriverTable({ drivers }: { drivers: DriverDTO[] }) {
                 ) : (
                   <span className="text-xs text-neutral-400">No data</span>
                 )}
+              </TableCell>
+              <TableCell>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => handleDelete(e, driver)}
+                  title="Delete driver"
+                  className="size-8 text-neutral-400 hover:text-red-600"
+                >
+                  <Trash2 className="size-4" />
+                </Button>
               </TableCell>
             </TableRow>
           );

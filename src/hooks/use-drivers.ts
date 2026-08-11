@@ -103,6 +103,21 @@ export function useCreateDriver() {
   });
 }
 
+async function deleteDriver(id: string): Promise<void> {
+  const res = await fetch(`/api/drivers/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete driver");
+}
+
+export function useDeleteDriver() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteDriver,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: DRIVERS_KEY });
+    },
+  });
+}
+
 export interface ImportResponse {
   created: number;
   updated: number;
