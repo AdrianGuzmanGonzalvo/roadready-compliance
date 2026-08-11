@@ -64,3 +64,8 @@ skills-lock.json
 
 .vercel
 .env*
+
+# API tokens / secrets accidentally dropped in the project root
+Turso.txt
+*.token
+*token*.txt
