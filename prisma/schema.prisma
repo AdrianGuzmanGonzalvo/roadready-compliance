@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum DriverStatus {
+  ACTIVE
+  TERMINATED
+  OUT_OF_WORK
+}
+
+model Driver {
+  id                String       @id @default(uuid())
+  pfl               String?
+  lastName          String
+  firstName         String
+  phone             String?
+  position          String?
+  driversLicense    String?
+  ssn               String? // stored masked, e.g. ***-**-1234
+  dob               DateTime?
+  licenseClass      String?
+  endorsements      String?
+  restrictions      String?
+  status            DriverStatus @default(ACTIVE)
+  updateResult      String?
+  medicalCondition  String?
+  bpFollowUp        String?
+  diabeticFollowUp  String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  complianceForm ComplianceForm?
+
+  @@index([lastName, firstName])
+  @@index([status])
+}
+
+model ComplianceForm {
+  id       String @id @default(uuid())
+  driverId String @unique
+  driver   Driver @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  mcsa5876   DateTime? // Medical Examiner Certificate
+  ds703      DateTime? // Medical Examination Report
+  ds704      DateTime? // Physical Fitness Certification
+  licenseExp DateTime? // Driver's License Expiration
+  ds870      DateTime? // Application / Driver Profile
+  ds872      DateTime? // Annual Review of Driving Record
+  ds873      DateTime? // Biennial Behind-the-Wheel
+  ds875      DateTime? // Biennial Written Exam
+  ds875y     DateTime? // Biennial Written Exam Y
+
+  // Extra field present in source data, not part of the core 9 but tracked for completeness
+  annualDefensiveDrivingTest DateTime?
+
+  updatedAt DateTime @updatedAt
+}
