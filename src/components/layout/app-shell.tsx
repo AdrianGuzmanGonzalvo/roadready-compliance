@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, FileBarChart, FileText, Settings } from "lucide-react";
@@ -14,7 +13,7 @@ import { cn } from "@/lib/utils";
 
 const mobileNav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/drivers?status=ACTIVE", label: "Drivers", icon: Users, match: "/drivers" },
+  { href: "/drivers?status=ALL", label: "Drivers", icon: Users, match: "/drivers" },
   { href: "/reports", label: "Reports", icon: FileBarChart, match: "/reports" },
   { href: "/forms", label: "Forms", icon: FileText },
   { href: "/settings", label: "Settings", icon: Settings },
@@ -25,9 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-neutral-50">
-      <Suspense fallback={<div className="hidden md:block w-60 shrink-0 border-r border-neutral-200 bg-white" />}>
-        <Sidebar />
-      </Suspense>
+      <Sidebar />
       <div className="flex flex-1 flex-col min-w-0">
         <TopBar />
         <nav className="flex md:hidden items-center justify-around border-b border-neutral-200 bg-white h-12">
