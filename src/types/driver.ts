@@ -2,16 +2,61 @@ export const DRIVER_STATUSES = ["ACTIVE", "INACTIVE", "TERMINATED"] as const;
 export type DriverStatusValue = (typeof DRIVER_STATUSES)[number];
 
 export const FORM_FIELD_DEFS = [
-  { key: "pptXray", label: "PPT/X-RAY", description: "Passport / X-Ray" },
-  { key: "mcsa5876", label: "MCSA-5876", description: "Medical Examiner Certificate" },
-  { key: "ds703", label: "DS-703", description: "Medical Examination Report" },
-  { key: "ds704", label: "DS-704", description: "Physical Fitness Certification" },
-  { key: "licenseExp", label: "License Exp.", description: "Driver's License Expiration" },
-  { key: "ds870", label: "DS-870", description: "Application / Driver Profile" },
-  { key: "ds872", label: "DS-872", description: "Annual Review of Driving Record" },
-  { key: "ds873", label: "DS-873", description: "Biennial Behind-the-Wheel" },
-  { key: "ds875", label: "DS-875", description: "Biennial Written Exam" },
-  { key: "ds875y", label: "DS-875Y", description: "Biennial Written Exam (Y)" },
+  { key: "pptXray", label: "PPT/X-RAY", description: "Passport / X-Ray", frequency: "As required" },
+  {
+    key: "mcsa5876",
+    label: "MCSA-5876",
+    description: "Medical Examiner's Certificate (USDOT Medical Card)",
+    frequency: "Up to 24 months (12 months for NYS SED school bus drivers / conditional medical follow-ups)",
+  },
+  {
+    key: "ds703",
+    label: "DS-703",
+    description: "Medical Examination Report (Non-CDL 19-A Drivers)",
+    frequency: "Biennial / 24 months (Annual / 12 months for school bus drivers)",
+  },
+  {
+    key: "ds704",
+    label: "DS-704",
+    description: "Physical Fitness Certification",
+    frequency: "Biennial / 24 months (Annual for school bus drivers)",
+  },
+  {
+    key: "licenseExp",
+    label: "License Exp.",
+    description: "Driver's License Expiration",
+    frequency: "Variable, 4–8 years (per issuing State DMV renewal cycle)",
+  },
+  {
+    key: "ds870",
+    label: "DS-870",
+    description: "Article 19-A Bus Driver Application",
+    frequency: "One-time upon hire (permanent Driver Qualification File record)",
+  },
+  {
+    key: "ds872",
+    label: "DS-872",
+    description: "Annual Review of Employee Driving Record",
+    frequency: "Annual / 12 months",
+  },
+  {
+    key: "ds873",
+    label: "DS-873",
+    description: "Article 19-A Biennial Behind-the-Wheel Examination",
+    frequency: "Biennial / 24 months (administered by a 19-A Certified Examiner)",
+  },
+  {
+    key: "ds875",
+    label: "DS-875",
+    description: "Article 19-A Oral/Written Examination Results",
+    frequency: "Biennial / 24 months (administered by a 19-A Certified Examiner)",
+  },
+  {
+    key: "ds875y",
+    label: "DS-875Y",
+    description: "Article 19-A Oral/Written Examination Results (Y)",
+    frequency: "Biennial / 24 months (administered by a 19-A Certified Examiner)",
+  },
 ] as const;
 
 export type FormFieldKey = (typeof FORM_FIELD_DEFS)[number]["key"];

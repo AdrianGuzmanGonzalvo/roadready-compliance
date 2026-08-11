@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { useDrivers } from "@/hooks/use-drivers";
 import { FORM_FIELD_DEFS } from "@/types/driver";
 
@@ -8,7 +9,7 @@ export default function SettingsPage() {
   const { data: drivers } = useDrivers();
 
   return (
-    <div className="flex flex-col gap-6 max-w-2xl">
+    <div className="flex flex-col gap-6 max-w-3xl">
       <div>
         <h1 className="text-xl font-semibold text-neutral-900">Settings</h1>
         <p className="text-sm text-neutral-500">About this compliance tracker.</p>
@@ -27,15 +28,34 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base font-semibold text-neutral-900">Tracked Compliance Forms</CardTitle>
+          <p className="text-xs text-neutral-400">
+            NYS Article 19-A Driver Qualification Record forms, official names, and renewal frequency.
+          </p>
         </CardHeader>
-        <CardContent className="text-sm text-neutral-600">
-          <ul className="grid grid-cols-2 gap-1.5">
-            {FORM_FIELD_DEFS.map((f) => (
-              <li key={f.key}>
-                <span className="font-medium text-neutral-800">{f.label}</span> — {f.description}
-              </li>
-            ))}
-          </ul>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Form</TableHead>
+                <TableHead>Official Name</TableHead>
+                <TableHead>Renewal Frequency</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {FORM_FIELD_DEFS.map((f) => (
+                <TableRow key={f.key}>
+                  <TableCell className="font-medium text-neutral-900 whitespace-nowrap">{f.label}</TableCell>
+                  <TableCell className="text-neutral-700 whitespace-normal">{f.description}</TableCell>
+                  <TableCell className="text-neutral-500 whitespace-normal">{f.frequency}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <p className="px-4 py-3 text-xs text-neutral-400 border-t border-neutral-100">
+            <span className="font-medium text-neutral-600">Update Result</span> — Driver File Compliance Status.
+            Dynamic/continuous internal tracking of overall file status (e.g. complete vs. inactive/out of work),
+            not tied to a single expiration date. Edit it from the driver detail drawer.
+          </p>
         </CardContent>
       </Card>
 

@@ -48,6 +48,7 @@ export function DriverDrawer() {
     licenseClass: "",
     endorsements: "",
     restrictions: "",
+    updateResult: "",
     note: "",
   });
   const [formDates, setFormDates] = React.useState<Record<string, string>>(EMPTY_FORM);
@@ -63,6 +64,7 @@ export function DriverDrawer() {
       licenseClass: driver.licenseClass ?? "",
       endorsements: driver.endorsements ?? "",
       restrictions: driver.restrictions ?? "",
+      updateResult: driver.updateResult ?? "",
       note: driver.note ?? "",
     });
     setFormDates({
@@ -186,6 +188,14 @@ export function DriverDrawer() {
               <Input
                 value={identity.restrictions}
                 onChange={(e) => setIdentity((s) => ({ ...s, restrictions: e.target.value }))}
+              />
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <Label>Update Result</Label>
+              <Input
+                value={identity.updateResult}
+                onChange={(e) => setIdentity((s) => ({ ...s, updateResult: e.target.value }))}
+                placeholder="e.g. COMPLETE FILE"
               />
             </div>
             <div className="col-span-2 space-y-1.5">
