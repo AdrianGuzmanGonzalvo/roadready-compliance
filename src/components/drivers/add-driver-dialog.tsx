@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CompanyRosterFields } from "@/components/companies/company-roster-fields";
 import { useUIStore } from "@/store/ui-store";
 import { useCreateDriver } from "@/hooks/use-drivers";
 import type { DriverStatusValue } from "@/types/driver";
@@ -120,14 +121,12 @@ export function AddDriverDialog() {
             </Select>
           </div>
 
-          <div className="space-y-1.5">
-            <Label>Company</Label>
-            <Input value={fields.company} onChange={(e) => setFields((s) => ({ ...s, company: e.target.value }))} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Roster</Label>
-            <Input value={fields.roster} onChange={(e) => setFields((s) => ({ ...s, roster: e.target.value }))} />
-          </div>
+          <CompanyRosterFields
+            company={fields.company}
+            roster={fields.roster}
+            onCompanyChange={(company) => setFields((s) => ({ ...s, company }))}
+            onRosterChange={(roster) => setFields((s) => ({ ...s, roster }))}
+          />
           <div className="space-y-1.5">
             <Label>Client ID</Label>
             <Input value={fields.clientId} onChange={(e) => setFields((s) => ({ ...s, clientId: e.target.value }))} />

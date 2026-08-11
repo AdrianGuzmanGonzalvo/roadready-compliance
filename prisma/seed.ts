@@ -250,7 +250,17 @@ const drivers = [
   },
 ];
 
+const companies = [
+  { name: "PrimeFlight", contactName: "Ops Desk", contactPhone: "555-020-2001", rosters: ["JFK", "LGA", "PREK"] },
+  { name: "Acme Transit", contactName: "Dispatch", contactPhone: "555-020-2002", rosters: ["North", "South"] },
+];
+
 async function main() {
+  for (const c of companies) {
+    const { rosters, ...company } = c;
+    await prisma.company.create({ data: { ...company, rosters: { create: rosters.map((name) => ({ name })) } } });
+  }
+
   for (const d of drivers) {
     const { form, ...driver } = d;
     await prisma.driver.create({
@@ -262,7 +272,7 @@ async function main() {
     });
   }
 
-  console.log(`Seeded ${drivers.length} synthetic demo drivers into ${DB_PATH}`);
+  console.log(`Seeded ${companies.length} companies and ${drivers.length} synthetic demo drivers into ${DB_PATH}`);
   await prisma.$disconnect();
 }
 

@@ -1,7 +1,9 @@
-import type { Driver, ComplianceForm } from "@/generated/prisma/client";
+import type { Driver, ComplianceForm, Company, Roster } from "@/generated/prisma/client";
 import type { DriverDTO, ComplianceFormDTO } from "@/types/driver";
+import type { CompanyDTO, RosterDTO } from "@/types/company";
 
 type DriverWithForm = Driver & { complianceForm: ComplianceForm | null };
+type CompanyWithRosters = Company & { rosters: Roster[] };
 
 function toIso(d: Date | null | undefined): string | null {
   return d ? d.toISOString() : null;
@@ -49,5 +51,31 @@ export function serializeDriver(driver: DriverWithForm): DriverDTO {
     createdAt: driver.createdAt.toISOString(),
     updatedAt: driver.updatedAt.toISOString(),
     complianceForm: form,
+  };
+}
+
+export function serializeRoster(roster: Roster): RosterDTO {
+  return {
+    id: roster.id,
+    name: roster.name,
+    companyId: roster.companyId,
+    notes: roster.notes,
+    createdAt: roster.createdAt.toISOString(),
+    updatedAt: roster.updatedAt.toISOString(),
+  };
+}
+
+export function serializeCompany(company: CompanyWithRosters): CompanyDTO {
+  return {
+    id: company.id,
+    name: company.name,
+    address: company.address,
+    contactName: company.contactName,
+    contactPhone: company.contactPhone,
+    contactEmail: company.contactEmail,
+    notes: company.notes,
+    createdAt: company.createdAt.toISOString(),
+    updatedAt: company.updatedAt.toISOString(),
+    rosters: company.rosters.map(serializeRoster),
   };
 }

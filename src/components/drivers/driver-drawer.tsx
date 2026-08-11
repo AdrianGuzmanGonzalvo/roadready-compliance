@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ComplianceBadge, DriverStatusBadge } from "@/components/drivers/compliance-badge";
+import { CompanyRosterFields } from "@/components/companies/company-roster-fields";
 import { useUIStore } from "@/store/ui-store";
 import { useDrivers, useUpdateDriver } from "@/hooks/use-drivers";
 import { FORM_FIELD_DEFS } from "@/types/driver";
@@ -155,20 +156,12 @@ export function DriverDrawer() {
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Company</Label>
-              <Input
-                value={identity.company}
-                onChange={(e) => setIdentity((s) => ({ ...s, company: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Roster</Label>
-              <Input
-                value={identity.roster}
-                onChange={(e) => setIdentity((s) => ({ ...s, roster: e.target.value }))}
-              />
-            </div>
+            <CompanyRosterFields
+              company={identity.company}
+              roster={identity.roster}
+              onCompanyChange={(company) => setIdentity((s) => ({ ...s, company }))}
+              onRosterChange={(roster) => setIdentity((s) => ({ ...s, roster }))}
+            />
             <div className="space-y-1.5">
               <Label>Client ID</Label>
               <Input
