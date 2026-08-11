@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { LayoutDashboard, Users, UserMinus, UserX, UploadCloud, FileBarChart, Settings, ShieldCheck, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, UserMinus, UserX, UploadCloud, FileBarChart, FileText, Settings, ShieldCheck, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 
@@ -24,6 +24,7 @@ const navItems = [
     status: "TERMINATED",
   },
   { href: "/reports", label: "Reports", icon: FileBarChart, match: "/reports" },
+  { href: "/forms", label: "Forms", icon: FileText },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

@@ -4,7 +4,7 @@ import * as React from "react";
 import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, FileBarChart, Settings } from "lucide-react";
+import { LayoutDashboard, Users, FileBarChart, FileText, Settings } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/topbar";
 import { UploadDialog } from "@/components/upload/upload-dialog";
@@ -16,6 +16,7 @@ const mobileNav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/drivers?status=ACTIVE", label: "Drivers", icon: Users, match: "/drivers" },
   { href: "/reports", label: "Reports", icon: FileBarChart, match: "/reports" },
+  { href: "/forms", label: "Forms", icon: FileText },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
