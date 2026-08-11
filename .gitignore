@@ -53,6 +53,8 @@ skills-lock.json
 # database
 /prisma/*.db
 /prisma/*.db-journal
+# synthetic demo data bundled for the live deployment (no real PII)
+!/prisma/seed.db
 
 # source data (contains PII - SSN, DOB, license #, phone)
 *.xlsx
