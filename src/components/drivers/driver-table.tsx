@@ -1,7 +1,8 @@
 "use client";
 
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { ComplianceBadge, DriverStatusBadge } from "@/components/drivers/compliance-badge";
+import { ComplianceBadge } from "@/components/drivers/compliance-badge";
+import { StatusQuickSelect } from "@/components/drivers/status-quick-select";
 import { useUIStore } from "@/store/ui-store";
 import { nextExpiringForm } from "@/lib/compliance";
 import type { DriverDTO } from "@/types/driver";
@@ -37,7 +38,11 @@ export function DriverTable({ drivers }: { drivers: DriverDTO[] }) {
                 {driver.lastName}, {driver.firstName}
               </TableCell>
               <TableCell>
-                <DriverStatusBadge status={driver.status} />
+                <StatusQuickSelect
+                  driverId={driver.id}
+                  status={driver.status}
+                  driverName={`${driver.firstName} ${driver.lastName}`}
+                />
               </TableCell>
               <TableCell className="text-neutral-500">{driver.position ?? "—"}</TableCell>
               <TableCell className="text-neutral-500">{driver.phone ?? "—"}</TableCell>
