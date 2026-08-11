@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { LayoutDashboard, Users, UserMinus, UserX, UploadCloud, FileBarChart, Settings, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Users, UserMinus, UserX, UploadCloud, FileBarChart, Settings, ShieldCheck, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 
@@ -33,6 +33,12 @@ export function Sidebar() {
   const router = useRouter();
   const setUploadOpen = useUIStore((s) => s.setUploadOpen);
   const currentStatus = searchParams.get("status");
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-neutral-200 bg-white">
@@ -74,12 +80,19 @@ export function Sidebar() {
         </button>
       </nav>
 
-      <div className="px-3 py-4 border-t border-neutral-100">
+      <div className="px-3 py-4 border-t border-neutral-100 space-y-1">
         <button
           onClick={() => router.push("/drivers?status=ALL")}
           className="w-full flex items-center gap-2.5 rounded-md px-3 py-2 text-xs text-neutral-400 hover:bg-neutral-100 transition-colors"
         >
           View all records
+        </button>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors"
+        >
+          <LogOut className="size-4" />
+          Sign out
         </button>
       </div>
     </aside>
