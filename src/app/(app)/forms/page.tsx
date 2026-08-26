@@ -2,9 +2,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { FORM_FIELD_DEFS } from "@/types/driver";
+import { useFormFieldDefs } from "@/hooks/use-form-labels";
 
 export default function FormsPage() {
+  const formFieldDefs = useFormFieldDefs();
   return (
     <div className="flex flex-col gap-6 max-w-3xl">
       <div>
@@ -29,7 +30,7 @@ export default function FormsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {FORM_FIELD_DEFS.map((f) => (
+              {formFieldDefs.map((f) => (
                 <TableRow key={f.key}>
                   <TableCell className="font-medium text-neutral-900 whitespace-nowrap">{f.label}</TableCell>
                   <TableCell className="text-neutral-700 whitespace-normal">{f.description}</TableCell>

@@ -19,6 +19,7 @@ import { ComplianceBadge, DriverStatusBadge } from "@/components/drivers/complia
 import { CompanyRosterFields } from "@/components/companies/company-roster-fields";
 import { useUIStore } from "@/store/ui-store";
 import { useDrivers, useUpdateDriver, useDeleteDriver } from "@/hooks/use-drivers";
+import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { FORM_FIELD_DEFS } from "@/types/driver";
 import type { ComplianceFormDTO, DriverStatusValue } from "@/types/driver";
 
@@ -39,6 +40,7 @@ export function DriverDrawer() {
   const { data: drivers } = useDrivers();
   const updateDriver = useUpdateDriver();
   const deleteDriver = useDeleteDriver();
+  const formFieldDefs = useFormFieldDefs();
 
   const driver = drivers?.find((d) => d.id === selectedDriverId) ?? null;
 
@@ -241,7 +243,7 @@ export function DriverDrawer() {
           <section className="space-y-3">
             <h3 className="text-sm font-semibold text-neutral-900">Compliance Form Dates</h3>
             <div className="grid grid-cols-1 gap-3">
-              {FORM_FIELD_DEFS.map((f) => (
+              {formFieldDefs.map((f) => (
                 <div key={f.key} className="flex items-center justify-between gap-3 rounded-lg border border-neutral-100 p-2.5">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-neutral-900">{f.label}</p>

@@ -13,8 +13,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateUser, useUpdateUser } from "@/hooks/use-users";
-import type { UserDTO } from "@/types/user";
+import type { UserDTO, UserRole } from "@/types/user";
 
 export function UserDialog({
   open,
@@ -33,12 +34,14 @@ export function UserDialog({
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [role, setRole] = React.useState<UserRole>("USER");
 
   React.useEffect(() => {
     if (!open) return;
     setUsername(user?.username ?? "");
     setPassword("");
     setConfirmPassword("");
+    setRole(user?.role ?? "USER");
   }, [open, user]);
 
   const passwordMismatch = password.length > 0 && password !== confirmPassword;
@@ -51,7 +54,7 @@ export function UserDialog({
 
     if (isEditing) {
       updateUser.mutate(
-        { id: user.id, username: username.trim(), ...(password ? { password } : {}) },
+        { id: user.id, username: username.trim(), role, ...(password ? { password } : {}) },
         {
           onSuccess: () => {
             toast.success(`Updated ${username}`);
@@ -62,7 +65,7 @@ export function UserDialog({
       );
     } else {
       createUser.mutate(
-        { username: username.trim(), password },
+        { username: username.trim(), password, role },
         {
           onSuccess: () => {
             toast.success(`Added user ${username}`);
@@ -109,6 +112,18 @@ export function UserDialog({
               autoComplete="new-password"
             />
             {passwordMismatch && <p className="text-xs text-red-600">Passwords don&apos;t match.</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label>Role</Label>
+            <Select value={role} onValueChange={(v) => setRole(v as UserRole)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USER">User</SelectItem>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

@@ -10,6 +10,7 @@ import { ComplianceBadge } from "@/components/drivers/compliance-badge";
 import { StatusQuickSelect } from "@/components/drivers/status-quick-select";
 import { useUIStore } from "@/store/ui-store";
 import { useDeleteDriver } from "@/hooks/use-drivers";
+import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { nextExpiringForm } from "@/lib/compliance";
 import type { DriverDTO } from "@/types/driver";
 
@@ -23,6 +24,7 @@ interface DriverTableProps {
 export function DriverTable({ drivers, selectedIds, onToggleOne, onToggleAll }: DriverTableProps) {
   const openDriver = useUIStore((s) => s.openDriver);
   const deleteDriver = useDeleteDriver();
+  const formFieldDefs = useFormFieldDefs();
 
   const allSelected = drivers.length > 0 && drivers.every((d) => selectedIds.has(d.id));
   const someSelected = drivers.some((d) => selectedIds.has(d.id));
@@ -68,7 +70,7 @@ export function DriverTable({ drivers, selectedIds, onToggleOne, onToggleAll }: 
           </TableRow>
         )}
         {drivers.map((driver) => {
-          const next = nextExpiringForm(driver.complianceForm);
+          const next = nextExpiringForm(driver.complianceForm, formFieldDefs);
           return (
             <TableRow key={driver.id} className="cursor-pointer" onClick={() => openDriver(driver.id)}>
               <TableCell>

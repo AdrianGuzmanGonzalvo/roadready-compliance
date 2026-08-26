@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2, Trash2, Building2, X } from "lucide-react";
 import { useDrivers, useDeleteDrivers } from "@/hooks/use-drivers";
+import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { useUIStore } from "@/store/ui-store";
 import { DriverFilters } from "@/components/drivers/driver-filters";
 import { DriverTable } from "@/components/drivers/driver-table";
@@ -54,6 +55,7 @@ export default function DriversPage() {
   const companyFilter = useUIStore((s) => s.companyFilter);
   const rosterFilter = useUIStore((s) => s.rosterFilter);
   const deleteDrivers = useDeleteDrivers();
+  const formFieldDefs = useFormFieldDefs();
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
@@ -144,8 +146,8 @@ export default function DriversPage() {
           <DriverFilters
             filteredCount={filtered.length}
             totalCount={scoped.length}
-            onExportXlsx={() => exportDriversToXlsx(filtered)}
-            onExportCsv={() => exportDriversToCsv(filtered)}
+            onExportXlsx={() => exportDriversToXlsx(filtered, undefined, formFieldDefs)}
+            onExportCsv={() => exportDriversToCsv(filtered, undefined, formFieldDefs)}
           />
 
           {selectedIds.size > 0 && (

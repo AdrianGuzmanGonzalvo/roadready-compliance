@@ -61,6 +61,13 @@ export const FORM_FIELD_DEFS = [
 
 export type FormFieldKey = (typeof FORM_FIELD_DEFS)[number]["key"];
 
+export interface FormFieldDef {
+  key: FormFieldKey;
+  label: string;
+  description: string;
+  frequency: string;
+}
+
 export interface ComplianceFormDTO {
   pptXray: string | null;
   mcsa5876: string | null;

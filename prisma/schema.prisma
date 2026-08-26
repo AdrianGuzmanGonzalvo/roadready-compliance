@@ -16,11 +16,23 @@ enum DriverStatus {
   TERMINATED
 }
 
+enum Role {
+  ADMIN
+  USER
+}
+
 model User {
   id           String   @id @default(uuid())
   username     String   @unique
   passwordHash String
+  role         Role     @default(ADMIN)
   createdAt    DateTime @default(now())
+}
+
+model FormLabel {
+  key       String   @id
+  label     String
+  updatedAt DateTime @updatedAt
 }
 
 model Company {

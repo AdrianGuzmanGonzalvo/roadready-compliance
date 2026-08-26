@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { UserDTO } from "@/types/user";
+import type { UserDTO, UserRole } from "@/types/user";
 
 const USERS_KEY = ["users"] as const;
 
@@ -12,11 +12,11 @@ async function fetchUsers(): Promise<UserDTO[]> {
   return data.users;
 }
 
-export function useUsers() {
-  return useQuery({ queryKey: USERS_KEY, queryFn: fetchUsers });
+export function useUsers(options?: { enabled?: boolean }) {
+  return useQuery({ queryKey: USERS_KEY, queryFn: fetchUsers, enabled: options?.enabled ?? true });
 }
 
-async function createUser(payload: { username: string; password: string }): Promise<UserDTO> {
+async function createUser(payload: { username: string; password: string; role: UserRole }): Promise<UserDTO> {
   const res = await fetch("/api/users", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -35,7 +35,15 @@ export function useCreateUser() {
   });
 }
 
-async function updateUser({ id, ...body }: { id: string; username?: string; password?: string }): Promise<UserDTO> {
+async function updateUser({
+  id,
+  ...body
+}: {
+  id: string;
+  username?: string;
+  password?: string;
+  role?: UserRole;
+}): Promise<UserDTO> {
   const res = await fetch(`/api/users/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },

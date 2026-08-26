@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useUIStore } from "@/store/ui-store";
-import { FORM_FIELD_DEFS } from "@/types/driver";
+import { useFormFieldDefs } from "@/hooks/use-form-labels";
 
 interface DriverFiltersProps {
   filteredCount: number;
@@ -31,6 +31,7 @@ export function DriverFilters({ filteredCount, totalCount, onExportXlsx, onExpor
   const windowFilter = useUIStore((s) => s.windowFilter);
   const setWindowFilter = useUIStore((s) => s.setWindowFilter);
   const setAddDriverOpen = useUIStore((s) => s.setAddDriverOpen);
+  const formFieldDefs = useFormFieldDefs();
 
   return (
     <div className="flex flex-col gap-3">
@@ -77,7 +78,7 @@ export function DriverFilters({ filteredCount, totalCount, onExportXlsx, onExpor
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">All Forms</SelectItem>
-            {FORM_FIELD_DEFS.map((f) => (
+            {formFieldDefs.map((f) => (
               <SelectItem key={f.key} value={f.key}>
                 {f.label} — {f.description}
               </SelectItem>

@@ -4,11 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { ComplianceBadge } from "@/components/drivers/compliance-badge";
 import { useUIStore } from "@/store/ui-store";
-import { FORM_FIELD_DEFS } from "@/types/driver";
+import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import type { DriverDTO } from "@/types/driver";
 
 export function ExpirationMatrix({ drivers }: { drivers: DriverDTO[] }) {
   const openDriver = useUIStore((s) => s.openDriver);
+  const formFieldDefs = useFormFieldDefs();
   const active = drivers.filter((d) => d.status === "ACTIVE");
 
   return (
@@ -22,7 +23,7 @@ export function ExpirationMatrix({ drivers }: { drivers: DriverDTO[] }) {
           <TableHeader>
             <TableRow>
               <TableHead className="sticky left-0 bg-white">Driver</TableHead>
-              {FORM_FIELD_DEFS.map((f) => (
+              {formFieldDefs.map((f) => (
                 <TableHead key={f.key} title={f.description}>
                   {f.label}
                 </TableHead>
@@ -32,7 +33,7 @@ export function ExpirationMatrix({ drivers }: { drivers: DriverDTO[] }) {
           <TableBody>
             {active.length === 0 && (
               <TableRow>
-                <TableCell colSpan={FORM_FIELD_DEFS.length + 1} className="text-center text-neutral-400 py-8">
+                <TableCell colSpan={formFieldDefs.length + 1} className="text-center text-neutral-400 py-8">
                   No active drivers yet. Upload an Excel file to get started.
                 </TableCell>
               </TableRow>
@@ -46,7 +47,7 @@ export function ExpirationMatrix({ drivers }: { drivers: DriverDTO[] }) {
                 <TableCell className="sticky left-0 bg-white font-medium text-neutral-900">
                   {driver.lastName}, {driver.firstName}
                 </TableCell>
-                {FORM_FIELD_DEFS.map((f) => (
+                {formFieldDefs.map((f) => (
                   <TableCell key={f.key}>
                     <ComplianceBadge date={driver.complianceForm?.[f.key] ?? null} compact />
                   </TableCell>

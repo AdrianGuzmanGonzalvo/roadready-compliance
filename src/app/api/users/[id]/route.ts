@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword } from "@/lib/auth";
-import type { UserDTO } from "@/types/user";
+import { hashPassword, requireAdmin } from "@/lib/auth";
+import type { UserDTO, UserRole } from "@/types/user";
 
-function serializeUser(user: { id: string; username: string; createdAt: Date }): UserDTO {
-  return { id: user.id, username: user.username, createdAt: user.createdAt.toISOString() };
+function serializeUser(user: { id: string; username: string; role: string; createdAt: Date }): UserDTO {
+  return { id: user.id, username: user.username, role: user.role as UserRole, createdAt: user.createdAt.toISOString() };
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const admin = await requireAdmin();
+  if (admin instanceof NextResponse) return admin;
+
   const { id } = await params;
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
@@ -15,7 +18,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const existing = await prisma.user.findUnique({ where: { id } });
   if (!existing) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const data: { username?: string; passwordHash?: string } = {};
+  const data: { username?: string; passwordHash?: string; role?: UserRole } = {};
 
   if ("username" in body) {
     const username = typeof body.username === "string" ? body.username.trim() : "";
@@ -34,21 +37,43 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     data.passwordHash = await hashPassword(body.password);
   }
 
+  if ("role" in body) {
+    const role: UserRole = body.role === "ADMIN" ? "ADMIN" : "USER";
+    if (existing.role === "ADMIN" && role !== "ADMIN") {
+      const adminCount = await prisma.user.count({ where: { role: "ADMIN" } });
+      if (adminCount <= 1) {
+        return NextResponse.json({ error: "Can't remove the last admin" }, { status: 400 });
+      }
+    }
+    data.role = role;
+  }
+
   const user = await prisma.user.update({
     where: { id },
     data,
-    select: { id: true, username: true, createdAt: true },
+    select: { id: true, username: true, role: true, createdAt: true },
   });
 
   return NextResponse.json({ user: serializeUser(user) });
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const admin = await requireAdmin();
+  if (admin instanceof NextResponse) return admin;
+
   const { id } = await params;
 
   const total = await prisma.user.count();
   if (total <= 1) {
     return NextResponse.json({ error: "Can't delete the last remaining user" }, { status: 400 });
+  }
+
+  const existing = await prisma.user.findUnique({ where: { id } });
+  if (existing?.role === "ADMIN") {
+    const adminCount = await prisma.user.count({ where: { role: "ADMIN" } });
+    if (adminCount <= 1) {
+      return NextResponse.json({ error: "Can't delete the last admin" }, { status: 400 });
+    }
   }
 
   await prisma.user.delete({ where: { id } }).catch(() => null);

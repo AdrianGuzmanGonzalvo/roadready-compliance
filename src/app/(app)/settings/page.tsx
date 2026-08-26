@@ -10,13 +10,15 @@ import { useDrivers } from "@/hooks/use-drivers";
 import { useCurrentUser } from "@/hooks/use-auth";
 import { useUsers, useDeleteUser } from "@/hooks/use-users";
 import { UserDialog } from "@/components/settings/user-dialog";
+import { FormLabelsCard } from "@/components/settings/form-labels-card";
 import type { UserDTO } from "@/types/user";
 
 export default function SettingsPage() {
   const router = useRouter();
   const { data: drivers } = useDrivers();
   const { data: currentUser } = useCurrentUser();
-  const { data: users } = useUsers();
+  const isAdmin = currentUser?.role === "ADMIN";
+  const { data: users } = useUsers({ enabled: isAdmin });
   const deleteUser = useDeleteUser();
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -68,48 +70,55 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <div>
-            <CardTitle className="text-base font-semibold text-neutral-900">Users</CardTitle>
-            <p className="text-xs text-neutral-400">Who can sign in to this site.</p>
-          </div>
-          <Button size="sm" onClick={openAddDialog}>
-            <Plus className="size-4" />
-            Add User
-          </Button>
-        </CardHeader>
-        <CardContent className="p-0">
-          <ul className="divide-y divide-neutral-100">
-            {users?.map((u) => (
-              <li key={u.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
-                <div>
-                  <p className="text-sm font-medium text-neutral-900">
-                    {u.username}
-                    {u.id === currentUser?.id && <span className="ml-1.5 text-xs text-neutral-400">(you)</span>}
-                  </p>
-                  <p className="text-xs text-neutral-400">Added {new Date(u.createdAt).toLocaleDateString()}</p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => openEditDialog(u)} title="Edit user">
-                    <Pencil className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(u)}
-                    title="Delete user"
-                    disabled={(users?.length ?? 0) <= 1}
-                    className="text-neutral-400 hover:text-red-600 disabled:hover:text-neutral-400"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      {isAdmin && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <div>
+              <CardTitle className="text-base font-semibold text-neutral-900">Users</CardTitle>
+              <p className="text-xs text-neutral-400">Who can sign in to this site.</p>
+            </div>
+            <Button size="sm" onClick={openAddDialog}>
+              <Plus className="size-4" />
+              Add User
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ul className="divide-y divide-neutral-100">
+              {users?.map((u) => (
+                <li key={u.id} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                  <div>
+                    <p className="text-sm font-medium text-neutral-900">
+                      {u.username}
+                      {u.id === currentUser?.id && <span className="ml-1.5 text-xs text-neutral-400">(you)</span>}
+                      <span className="ml-1.5 rounded-full border border-neutral-200 px-1.5 py-0.5 text-[10px] font-medium text-neutral-500">
+                        {u.role}
+                      </span>
+                    </p>
+                    <p className="text-xs text-neutral-400">Added {new Date(u.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(u)} title="Edit user">
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(u)}
+                      title="Delete user"
+                      disabled={(users?.length ?? 0) <= 1}
+                      className="text-neutral-400 hover:text-red-600 disabled:hover:text-neutral-400"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {isAdmin && <FormLabelsCard />}
 
       <Card>
         <CardHeader>

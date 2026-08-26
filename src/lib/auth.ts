@@ -1,5 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
 
 export const SESSION_COOKIE = "rr_session";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
@@ -52,3 +55,21 @@ export async function verifyPasswordHash(password: string, hash: string): Promis
 }
 
 export const SESSION_COOKIE_MAX_AGE = SESSION_MAX_AGE_SECONDS;
+
+/** Resolves the signed-in user (id, username, role) from the session cookie, or null. */
+export async function getSessionUser(): Promise<{ id: string; username: string; role: "ADMIN" | "USER" } | null> {
+  const cookieStore = await cookies();
+  const userId = verifySessionToken(cookieStore.get(SESSION_COOKIE)?.value);
+  if (!userId) return null;
+
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, username: true, role: true } });
+  return user;
+}
+
+/** For API routes: resolves the current user, or returns a 401/403 NextResponse if not an admin. */
+export async function requireAdmin(): Promise<{ id: string; username: string; role: "ADMIN" | "USER" } | NextResponse> {
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.role !== "ADMIN") return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  return user;
+}

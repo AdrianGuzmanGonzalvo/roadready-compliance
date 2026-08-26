@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Loader2, Download, FileSpreadsheet, Printer, Search, X } from "lucide-react";
 import { useDrivers } from "@/hooks/use-drivers";
+import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { useUIStore } from "@/store/ui-store";
 import { getDueSoonEntries } from "@/lib/compliance";
 import { exportDueSoonToXlsx, exportDueSoonToCsv } from "@/lib/export";
@@ -13,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { ComplianceBadge, DriverStatusBadge } from "@/components/drivers/compliance-badge";
 import { filterByCompanyRoster } from "@/lib/scope";
-import { FORM_FIELD_DEFS } from "@/types/driver";
 import type { DriverStatusValue, FormFieldKey } from "@/types/driver";
 
 const STATUS_OPTIONS: DriverStatusValue[] = ["ACTIVE", "INACTIVE", "TERMINATED"];
@@ -24,6 +24,7 @@ export default function SoonToExpireReportPage() {
   const openDriver = useUIStore((s) => s.openDriver);
   const companyFilter = useUIStore((s) => s.companyFilter);
   const rosterFilter = useUIStore((s) => s.rosterFilter);
+  const formFieldDefs = useFormFieldDefs();
 
   const [statusFilter, setStatusFilter] = React.useState<Record<DriverStatusValue, boolean>>({
     ACTIVE: true,
@@ -52,7 +53,10 @@ export default function SoonToExpireReportPage() {
     return filterByCompanyRoster(drivers, companyFilter, rosterFilter).filter((d) => statusFilter[d.status]);
   }, [drivers, companyFilter, rosterFilter, statusFilter]);
 
-  const allEntries = React.useMemo(() => getDueSoonEntries(scoped, WIDE_WINDOW_DAYS), [scoped]);
+  const allEntries = React.useMemo(
+    () => getDueSoonEntries(scoped, WIDE_WINDOW_DAYS, new Date(), formFieldDefs),
+    [scoped, formFieldDefs]
+  );
 
   const entries = React.useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -128,7 +132,7 @@ export default function SoonToExpireReportPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Forms</SelectItem>
-              {FORM_FIELD_DEFS.map((f) => (
+              {formFieldDefs.map((f) => (
                 <SelectItem key={f.key} value={f.key}>
                   {f.label}
                 </SelectItem>

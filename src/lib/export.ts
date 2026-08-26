@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 import { FORM_FIELD_DEFS } from "@/types/driver";
-import type { DriverDTO } from "@/types/driver";
+import type { DriverDTO, FormFieldDef } from "@/types/driver";
 import { daysRemaining, type DueSoonEntry } from "@/lib/compliance";
 
 function fmt(date: string | null): string {
@@ -28,7 +28,7 @@ function writeCsv(rows: Record<string, string | number>[], filename: string) {
   URL.revokeObjectURL(url);
 }
 
-function toRow(driver: DriverDTO): Record<string, string | number> {
+function toRow(driver: DriverDTO, formFieldDefs: readonly FormFieldDef[]): Record<string, string | number> {
   const row: Record<string, string | number> = {
     "Last Name": driver.lastName,
     "First Name": driver.firstName,
@@ -46,7 +46,7 @@ function toRow(driver: DriverDTO): Record<string, string | number> {
     Note: driver.note ?? "",
   };
 
-  for (const f of FORM_FIELD_DEFS) {
+  for (const f of formFieldDefs) {
     const value = driver.complianceForm?.[f.key] ?? null;
     row[f.label] = fmt(value);
     const days = daysRemaining(value);
@@ -56,12 +56,20 @@ function toRow(driver: DriverDTO): Record<string, string | number> {
   return row;
 }
 
-export function exportDriversToXlsx(drivers: DriverDTO[], filename = "roadready-drivers-export.xlsx") {
-  writeXlsx(drivers.map(toRow), "Drivers", filename);
+export function exportDriversToXlsx(
+  drivers: DriverDTO[],
+  filename = "roadready-drivers-export.xlsx",
+  formFieldDefs: readonly FormFieldDef[] = FORM_FIELD_DEFS
+) {
+  writeXlsx(drivers.map((d) => toRow(d, formFieldDefs)), "Drivers", filename);
 }
 
-export function exportDriversToCsv(drivers: DriverDTO[], filename = "roadready-drivers-export.csv") {
-  writeCsv(drivers.map(toRow), filename);
+export function exportDriversToCsv(
+  drivers: DriverDTO[],
+  filename = "roadready-drivers-export.csv",
+  formFieldDefs: readonly FormFieldDef[] = FORM_FIELD_DEFS
+) {
+  writeCsv(drivers.map((d) => toRow(d, formFieldDefs)), filename);
 }
 
 function toDueSoonRow(entry: DueSoonEntry): Record<string, string | number> {
