@@ -30,9 +30,11 @@ model User {
 }
 
 model FormLabel {
-  key       String   @id
-  label     String
-  updatedAt DateTime @updatedAt
+  key         String   @id
+  label       String?
+  description String?
+  frequency   String?
+  updatedAt   DateTime @updatedAt
 }
 
 model Company {
