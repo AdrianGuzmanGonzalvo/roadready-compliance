@@ -10,33 +10,44 @@ export interface FormFieldOverride {
   frequency?: string;
 }
 
-async function fetchFormLabelOverrides(): Promise<Record<string, FormFieldOverride>> {
+interface FormLabelsResponse {
+  overrides: Record<string, FormFieldOverride>;
+  customForms: FormFieldDef[];
+}
+
+async function fetchFormLabels(): Promise<FormLabelsResponse> {
   const res = await fetch("/api/form-labels");
   if (!res.ok) throw new Error("Failed to load form labels");
-  const data = await res.json();
-  return data.overrides;
+  return res.json();
+}
+
+export function useFormLabels() {
+  return useQuery({ queryKey: ["form-labels"], queryFn: fetchFormLabels, staleTime: 60_000 });
 }
 
 export function useFormLabelOverrides() {
-  return useQuery({ queryKey: ["form-labels"], queryFn: fetchFormLabelOverrides, staleTime: 60_000 });
+  const { data } = useFormLabels();
+  return { data: data?.overrides };
 }
 
-/** FORM_FIELD_DEFS with any admin-set overrides (label/description/frequency) applied. */
+/** Built-in forms (+ admin-set overrides) plus any admin-added custom forms, as one ordered list. */
 export function useFormFieldDefs(): FormFieldDef[] {
-  const { data: overrides } = useFormLabelOverrides();
-  return React.useMemo(
-    () =>
-      FORM_FIELD_DEFS.map((f) => {
-        const o = overrides?.[f.key];
-        return {
-          ...f,
-          label: o?.label ?? f.label,
-          description: o?.description ?? f.description,
-          frequency: o?.frequency ?? f.frequency,
-        };
-      }),
-    [overrides]
-  );
+  const { data } = useFormLabels();
+  const overrides = data?.overrides;
+  const customForms = data?.customForms ?? [];
+  return React.useMemo(() => {
+    const builtIn: FormFieldDef[] = FORM_FIELD_DEFS.map((f) => {
+      const o = overrides?.[f.key];
+      return {
+        key: f.key,
+        label: o?.label ?? f.label,
+        description: o?.description ?? f.description,
+        frequency: o?.frequency ?? f.frequency,
+        isCustom: false,
+      };
+    });
+    return [...builtIn, ...customForms];
+  }, [overrides, customForms]);
 }
 
 export function useUpdateFormLabel() {
@@ -63,5 +74,68 @@ export function useUpdateFormLabel() {
       return res.json();
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["form-labels"] }),
+  });
+}
+
+export function useCreateCustomForm() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { label: string; description: string; frequency: string }) => {
+      const res = await fetch("/api/custom-forms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? "Failed to create form");
+      }
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["form-labels"] }),
+  });
+}
+
+export function useUpdateCustomForm() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      key,
+      ...body
+    }: {
+      key: string;
+      label?: string;
+      description?: string;
+      frequency?: string;
+    }) => {
+      const res = await fetch(`/api/custom-forms/${key}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => null);
+        throw new Error(errBody?.error ?? "Failed to update form");
+      }
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["form-labels"] }),
+  });
+}
+
+export function useDeleteCustomForm() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (key: string) => {
+      const res = await fetch(`/api/custom-forms/${key}`, { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? "Failed to delete form");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["form-labels"] });
+      queryClient.invalidateQueries({ queryKey: ["drivers"] });
+    },
   });
 }

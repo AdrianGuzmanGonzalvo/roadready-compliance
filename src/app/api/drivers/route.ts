@@ -5,7 +5,7 @@ import { DRIVER_STATUSES } from "@/types/driver";
 
 export async function GET() {
   const drivers = await prisma.driver.findMany({
-    include: { complianceForm: true },
+    include: { complianceForm: true, customFormValues: true },
     orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
   });
   return NextResponse.json({ drivers: drivers.map(serializeDriver) });
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       note: body.note || null,
       complianceForm: { create: {} },
     },
-    include: { complianceForm: true },
+    include: { complianceForm: true, customFormValues: true },
   });
 
   return NextResponse.json({ driver: serializeDriver(driver) }, { status: 201 });

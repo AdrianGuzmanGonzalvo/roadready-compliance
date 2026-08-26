@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import type { FormFieldKey } from "@/types/driver";
 
 export type StatusTab = "ACTIVE" | "INACTIVE" | "TERMINATED" | "ALL";
 export type WindowFilter = "ALL" | "expired" | "30" | "60";
@@ -11,8 +10,8 @@ interface UIState {
   statusTab: StatusTab;
   setStatusTab: (tab: StatusTab) => void;
 
-  formFilter: FormFieldKey | "ALL";
-  setFormFilter: (key: FormFieldKey | "ALL") => void;
+  formFilter: string;
+  setFormFilter: (key: string) => void;
 
   /** Global scope applied to the Dashboard, Reports, and Drivers list. "ALL" means unrestricted. */
   companyFilter: string;

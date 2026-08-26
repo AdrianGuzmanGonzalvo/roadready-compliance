@@ -5,6 +5,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { ComplianceBadge } from "@/components/drivers/compliance-badge";
 import { useUIStore } from "@/store/ui-store";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
+import { getFormDate } from "@/lib/compliance";
 import type { DriverDTO } from "@/types/driver";
 
 export function ExpirationMatrix({ drivers }: { drivers: DriverDTO[] }) {
@@ -49,7 +50,7 @@ export function ExpirationMatrix({ drivers }: { drivers: DriverDTO[] }) {
                 </TableCell>
                 {formFieldDefs.map((f) => (
                   <TableCell key={f.key}>
-                    <ComplianceBadge date={driver.complianceForm?.[f.key] ?? null} compact />
+                    <ComplianceBadge date={getFormDate(driver, f)} compact />
                   </TableCell>
                 ))}
               </TableRow>

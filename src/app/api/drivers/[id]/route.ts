@@ -34,7 +34,10 @@ function parseDateInput(value: unknown): Date | null | undefined {
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const driver = await prisma.driver.findUnique({ where: { id }, include: { complianceForm: true } });
+  const driver = await prisma.driver.findUnique({
+    where: { id },
+    include: { complianceForm: true, customFormValues: true },
+  });
   if (!driver) return NextResponse.json({ error: "Driver not found" }, { status: 404 });
   return NextResponse.json({ driver: serializeDriver(driver) });
 }
@@ -60,8 +63,24 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
   }
 
+  const customFormDates: Record<string, Date | null> = {};
+  if (body.customForm && typeof body.customForm === "object") {
+    const validKeys = new Set((await prisma.customForm.findMany({ select: { key: true } })).map((f) => f.key));
+    for (const [key, value] of Object.entries(body.customForm)) {
+      if (validKeys.has(key)) customFormDates[key] = parseDateInput(value) ?? null;
+    }
+  }
+
   const existing = await prisma.driver.findUnique({ where: { id }, select: { id: true } });
   if (!existing) return NextResponse.json({ error: "Driver not found" }, { status: 404 });
+
+  for (const [formKey, date] of Object.entries(customFormDates)) {
+    await prisma.customFormValue.upsert({
+      where: { driverId_formKey: { driverId: id, formKey } },
+      create: { driverId: id, formKey, date },
+      update: { date },
+    });
+  }
 
   const driver = await prisma.driver.update({
     where: { id },
@@ -77,7 +96,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
             }
           : undefined,
     },
-    include: { complianceForm: true },
+    include: { complianceForm: true, customFormValues: true },
   });
 
   return NextResponse.json({ driver: serializeDriver(driver) });

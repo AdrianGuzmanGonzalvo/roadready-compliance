@@ -43,13 +43,14 @@ export interface UpdateDriverPayload {
     > & { status: DriverStatusValue }
   >;
   form?: Partial<ComplianceFormDTO>;
+  customForm?: Record<string, string | null>;
 }
 
 async function updateDriver(payload: UpdateDriverPayload): Promise<DriverDTO> {
   const res = await fetch(`/api/drivers/${payload.id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ driver: payload.driver, form: payload.form }),
+    body: JSON.stringify({ driver: payload.driver, form: payload.form, customForm: payload.customForm }),
   });
   if (!res.ok) throw new Error("Failed to update driver");
   const data = await res.json();

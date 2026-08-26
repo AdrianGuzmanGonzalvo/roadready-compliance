@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
-import { FORM_FIELD_DEFS } from "@/types/driver";
+import { DEFAULT_FORM_FIELD_DEFS } from "@/types/driver";
 import type { DriverDTO, FormFieldDef } from "@/types/driver";
-import { daysRemaining, type DueSoonEntry } from "@/lib/compliance";
+import { daysRemaining, getFormDate, type DueSoonEntry } from "@/lib/compliance";
 
 function fmt(date: string | null): string {
   if (!date) return "";
@@ -47,7 +47,7 @@ function toRow(driver: DriverDTO, formFieldDefs: readonly FormFieldDef[]): Recor
   };
 
   for (const f of formFieldDefs) {
-    const value = driver.complianceForm?.[f.key] ?? null;
+    const value = getFormDate(driver, f);
     row[f.label] = fmt(value);
     const days = daysRemaining(value);
     row[`${f.label} (Days)`] = days ?? "";
@@ -59,7 +59,7 @@ function toRow(driver: DriverDTO, formFieldDefs: readonly FormFieldDef[]): Recor
 export function exportDriversToXlsx(
   drivers: DriverDTO[],
   filename = "roadready-drivers-export.xlsx",
-  formFieldDefs: readonly FormFieldDef[] = FORM_FIELD_DEFS
+  formFieldDefs: readonly FormFieldDef[] = DEFAULT_FORM_FIELD_DEFS
 ) {
   writeXlsx(drivers.map((d) => toRow(d, formFieldDefs)), "Drivers", filename);
 }
@@ -67,7 +67,7 @@ export function exportDriversToXlsx(
 export function exportDriversToCsv(
   drivers: DriverDTO[],
   filename = "roadready-drivers-export.csv",
-  formFieldDefs: readonly FormFieldDef[] = FORM_FIELD_DEFS
+  formFieldDefs: readonly FormFieldDef[] = DEFAULT_FORM_FIELD_DEFS
 ) {
   writeCsv(drivers.map((d) => toRow(d, formFieldDefs)), filename);
 }

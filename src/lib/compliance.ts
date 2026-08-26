@@ -1,5 +1,5 @@
 import { differenceInCalendarDays } from "date-fns";
-import { FORM_FIELD_DEFS, type ComplianceFormDTO, type DriverDTO, type FormFieldDef, type FormFieldKey } from "@/types/driver";
+import { DEFAULT_FORM_FIELD_DEFS, type DriverDTO, type FormFieldDef, type FormFieldKey } from "@/types/driver";
 
 export type ComplianceStatus = "expired" | "expiring_30" | "expiring_60" | "compliant" | "missing";
 
@@ -59,16 +59,24 @@ const STATUS_SEVERITY: Record<ComplianceStatus, number> = {
   missing: 0,
 };
 
+export type FormSource = Pick<DriverDTO, "complianceForm" | "customForms">;
+
+/** Reads a driver's recorded date for a form field, whether it's a built-in column or a custom form. */
+export function getFormDate(source: FormSource, formDef: Pick<FormFieldDef, "key" | "isCustom">): string | null {
+  if (formDef.isCustom) return source.customForms?.[formDef.key] ?? null;
+  return source.complianceForm?.[formDef.key as FormFieldKey] ?? null;
+}
+
 /** Worst-case status across all tracked form fields for a driver. */
 export function overallStatus(
-  form: ComplianceFormDTO | null,
+  source: FormSource | null,
   now: Date = new Date(),
-  formFieldDefs: readonly FormFieldDef[] = FORM_FIELD_DEFS
+  formFieldDefs: readonly FormFieldDef[] = DEFAULT_FORM_FIELD_DEFS
 ): ComplianceStatus {
-  if (!form) return "missing";
+  if (!source) return "missing";
   let worst: ComplianceStatus = "missing";
-  for (const { key } of formFieldDefs) {
-    const s = statusForDate(form[key as FormFieldKey], now);
+  for (const f of formFieldDefs) {
+    const s = statusForDate(getFormDate(source, f), now);
     if (STATUS_SEVERITY[s] > STATUS_SEVERITY[worst]) worst = s;
   }
   return worst;
@@ -76,17 +84,17 @@ export function overallStatus(
 
 /** The form field with the nearest (most urgent) expiration date for a driver, if any. */
 export function nextExpiringForm(
-  form: ComplianceFormDTO | null,
-  formFieldDefs: readonly FormFieldDef[] = FORM_FIELD_DEFS
-): { key: FormFieldKey; label: string; date: string } | null {
-  if (!form) return null;
-  let best: { key: FormFieldKey; label: string; date: string; time: number } | null = null;
-  for (const { key, label } of formFieldDefs) {
-    const value = form[key as FormFieldKey];
+  source: FormSource | null,
+  formFieldDefs: readonly FormFieldDef[] = DEFAULT_FORM_FIELD_DEFS
+): { key: string; label: string; date: string } | null {
+  if (!source) return null;
+  let best: { key: string; label: string; date: string; time: number } | null = null;
+  for (const f of formFieldDefs) {
+    const value = getFormDate(source, f);
     if (!value) continue;
     const time = new Date(value).getTime();
     if (Number.isNaN(time)) continue;
-    if (!best || time < best.time) best = { key, label, date: value, time };
+    if (!best || time < best.time) best = { key: f.key, label: f.label, date: value, time };
   }
   return best ? { key: best.key, label: best.label, date: best.date } : null;
 }
@@ -105,7 +113,7 @@ export interface DueSoonEntry {
   company: string | null;
   roster: string | null;
   driverStatus: DriverDTO["status"];
-  formKey: FormFieldKey;
+  formKey: string;
   formLabel: string;
   date: string;
   daysRemaining: number;
@@ -121,13 +129,12 @@ export function getDueSoonEntries(
   drivers: DriverDTO[],
   withinDays = 30,
   now: Date = new Date(),
-  formFieldDefs: readonly FormFieldDef[] = FORM_FIELD_DEFS
+  formFieldDefs: readonly FormFieldDef[] = DEFAULT_FORM_FIELD_DEFS
 ): DueSoonEntry[] {
   const entries: DueSoonEntry[] = [];
   for (const driver of drivers) {
-    if (!driver.complianceForm) continue;
-    for (const { key, label } of formFieldDefs) {
-      const value = driver.complianceForm[key as FormFieldKey];
+    for (const f of formFieldDefs) {
+      const value = getFormDate(driver, f);
       if (!value) continue;
       const days = daysRemaining(value, now);
       if (days === null || days > withinDays) continue;
@@ -138,8 +145,8 @@ export function getDueSoonEntries(
         company: driver.company,
         roster: driver.roster,
         driverStatus: driver.status,
-        formKey: key,
-        formLabel: label,
+        formKey: f.key,
+        formLabel: f.label,
         date: value,
         daysRemaining: days,
         status: days < 0 ? "expired" : "expiring_30",
@@ -151,15 +158,15 @@ export function getDueSoonEntries(
 
 /** Tally form-level (not driver-level) expiry counts across a set of drivers' compliance forms. */
 export function summarizeFormExpiries(
-  forms: (ComplianceFormDTO | null)[],
+  sources: (FormSource | null)[],
   now: Date = new Date(),
-  formFieldDefs: readonly FormFieldDef[] = FORM_FIELD_DEFS
+  formFieldDefs: readonly FormFieldDef[] = DEFAULT_FORM_FIELD_DEFS
 ): FormExpirySummary {
   const summary: FormExpirySummary = { expired: 0, expiring30: 0, expiring60: 0, compliant: 0 };
-  for (const form of forms) {
-    if (!form) continue;
-    for (const { key } of formFieldDefs) {
-      const value = form[key as FormFieldKey];
+  for (const source of sources) {
+    if (!source) continue;
+    for (const f of formFieldDefs) {
+      const value = getFormDate(source, f);
       if (!value) continue;
       const status = statusForDate(value, now);
       if (status === "expired") summary.expired++;

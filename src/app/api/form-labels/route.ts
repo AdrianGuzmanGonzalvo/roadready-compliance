@@ -11,7 +11,10 @@ export async function GET() {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const rows = await prisma.formLabel.findMany();
+  const [rows, customForms] = await Promise.all([
+    prisma.formLabel.findMany(),
+    prisma.customForm.findMany({ orderBy: { createdAt: "asc" } }),
+  ]);
   const overrides = Object.fromEntries(
     rows.map((r) => [
       r.key,
@@ -22,7 +25,16 @@ export async function GET() {
       },
     ])
   );
-  return NextResponse.json({ overrides });
+  return NextResponse.json({
+    overrides,
+    customForms: customForms.map((f) => ({
+      key: f.key,
+      label: f.label,
+      description: f.description,
+      frequency: f.frequency,
+      isCustom: true,
+    })),
+  });
 }
 
 export async function PATCH(req: Request) {

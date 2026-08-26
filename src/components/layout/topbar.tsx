@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CompanyRosterFilter } from "@/components/layout/company-roster-filter";
 import { useUIStore } from "@/store/ui-store";
 import { useDrivers } from "@/hooks/use-drivers";
+import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { overallStatus } from "@/lib/compliance";
 import { filterByCompanyRoster } from "@/lib/scope";
 
@@ -19,10 +20,11 @@ export function TopBar() {
   const companyFilter = useUIStore((s) => s.companyFilter);
   const rosterFilter = useUIStore((s) => s.rosterFilter);
   const { data: drivers } = useDrivers();
+  const formFieldDefs = useFormFieldDefs();
 
   const scoped = drivers ? filterByCompanyRoster(drivers, companyFilter, rosterFilter) : [];
   const expiredCount = scoped.filter(
-    (d) => d.status === "ACTIVE" && overallStatus(d.complianceForm) === "expired"
+    (d) => d.status === "ACTIVE" && overallStatus(d, new Date(), formFieldDefs) === "expired"
   ).length;
 
   function handleSearchChange(value: string) {

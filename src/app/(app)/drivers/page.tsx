@@ -12,10 +12,10 @@ import { DriverTable } from "@/components/drivers/driver-table";
 import { AssignCompanyRosterDialog } from "@/components/drivers/assign-company-roster-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { statusForDate } from "@/lib/compliance";
+import { statusForDate, getFormDate } from "@/lib/compliance";
 import { exportDriversToXlsx, exportDriversToCsv } from "@/lib/export";
 import { filterByCompanyRoster } from "@/lib/scope";
-import type { DriverDTO, FormFieldKey } from "@/types/driver";
+import type { DriverDTO } from "@/types/driver";
 
 function SyncStatusFromUrl() {
   const searchParams = useSearchParams();
@@ -75,7 +75,8 @@ export default function DriversPage() {
       if (!matchesSearch(driver, search)) return false;
 
       if (formFilter !== "ALL") {
-        const value = driver.complianceForm?.[formFilter as FormFieldKey] ?? null;
+        const formDef = formFieldDefs.find((f) => f.key === formFilter);
+        const value = formDef ? getFormDate(driver, formDef) : null;
         if (windowFilter === "ALL") {
           if (!value) return false;
         } else {
@@ -87,7 +88,7 @@ export default function DriversPage() {
 
       return true;
     });
-  }, [scoped, statusTab, search, formFilter, windowFilter]);
+  }, [scoped, statusTab, search, formFilter, windowFilter, formFieldDefs]);
 
   function toggleOne(id: string) {
     setSelectedIds((prev) => {

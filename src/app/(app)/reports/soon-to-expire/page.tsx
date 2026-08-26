@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { ComplianceBadge, DriverStatusBadge } from "@/components/drivers/compliance-badge";
 import { filterByCompanyRoster } from "@/lib/scope";
-import type { DriverStatusValue, FormFieldKey } from "@/types/driver";
+import type { DriverStatusValue } from "@/types/driver";
 
 const STATUS_OPTIONS: DriverStatusValue[] = ["ACTIVE", "INACTIVE", "TERMINATED"];
 const WIDE_WINDOW_DAYS = 3650; // fetch a broad window; days-remaining filters narrow it below
@@ -32,7 +32,7 @@ export default function SoonToExpireReportPage() {
     TERMINATED: false,
   });
   const [search, setSearch] = React.useState("");
-  const [formFilter, setFormFilter] = React.useState<FormFieldKey | "ALL">("ALL");
+  const [formFilter, setFormFilter] = React.useState<string>("ALL");
   const [dueFrom, setDueFrom] = React.useState("");
   const [dueTo, setDueTo] = React.useState("");
   const [daysMin, setDaysMin] = React.useState("");

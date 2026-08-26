@@ -70,7 +70,7 @@ export function DriverTable({ drivers, selectedIds, onToggleOne, onToggleAll }: 
           </TableRow>
         )}
         {drivers.map((driver) => {
-          const next = nextExpiringForm(driver.complianceForm, formFieldDefs);
+          const next = nextExpiringForm(driver, formFieldDefs);
           return (
             <TableRow key={driver.id} className="cursor-pointer" onClick={() => openDriver(driver.id)}>
               <TableCell>

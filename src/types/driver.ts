@@ -62,11 +62,15 @@ export const FORM_FIELD_DEFS = [
 export type FormFieldKey = (typeof FORM_FIELD_DEFS)[number]["key"];
 
 export interface FormFieldDef {
-  key: FormFieldKey;
+  key: string;
   label: string;
   description: string;
   frequency: string;
+  isCustom: boolean;
 }
+
+/** FORM_FIELD_DEFS shaped as FormFieldDef, for use as a default where the merged (built-in + custom) list isn't available. */
+export const DEFAULT_FORM_FIELD_DEFS: FormFieldDef[] = FORM_FIELD_DEFS.map((f) => ({ ...f, isCustom: false }));
 
 export interface ComplianceFormDTO {
   pptXray: string | null;
@@ -107,4 +111,5 @@ export interface DriverDTO {
   createdAt: string;
   updatedAt: string;
   complianceForm: ComplianceFormDTO | null;
+  customForms: Record<string, string | null>;
 }

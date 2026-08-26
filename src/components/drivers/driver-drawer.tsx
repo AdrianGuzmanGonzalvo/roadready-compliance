@@ -20,7 +20,7 @@ import { CompanyRosterFields } from "@/components/companies/company-roster-field
 import { useUIStore } from "@/store/ui-store";
 import { useDrivers, useUpdateDriver, useDeleteDriver } from "@/hooks/use-drivers";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
-import { FORM_FIELD_DEFS } from "@/types/driver";
+import { getFormDate } from "@/lib/compliance";
 import type { ComplianceFormDTO, DriverStatusValue } from "@/types/driver";
 
 function toDateInputValue(iso: string | null): string {
@@ -29,10 +29,6 @@ function toDateInputValue(iso: string | null): string {
   if (Number.isNaN(d.getTime())) return "";
   return d.toISOString().slice(0, 10);
 }
-
-const EMPTY_FORM: Record<string, string> = Object.fromEntries(
-  [...FORM_FIELD_DEFS.map((f) => f.key), "annualDefensiveDrivingTest"].map((k) => [k, ""])
-);
 
 export function DriverDrawer() {
   const selectedDriverId = useUIStore((s) => s.selectedDriverId);
@@ -58,7 +54,7 @@ export function DriverDrawer() {
     updateResult: "",
     note: "",
   });
-  const [formDates, setFormDates] = React.useState<Record<string, string>>(EMPTY_FORM);
+  const [formDates, setFormDates] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
     if (!driver) return;
@@ -76,20 +72,17 @@ export function DriverDrawer() {
       updateResult: driver.updateResult ?? "",
       note: driver.note ?? "",
     });
-    setFormDates({
-      pptXray: toDateInputValue(driver.complianceForm?.pptXray ?? null),
-      mcsa5876: toDateInputValue(driver.complianceForm?.mcsa5876 ?? null),
-      ds703: toDateInputValue(driver.complianceForm?.ds703 ?? null),
-      ds704: toDateInputValue(driver.complianceForm?.ds704 ?? null),
-      licenseExp: toDateInputValue(driver.complianceForm?.licenseExp ?? null),
-      ds870: toDateInputValue(driver.complianceForm?.ds870 ?? null),
-      ds872: toDateInputValue(driver.complianceForm?.ds872 ?? null),
-      ds873: toDateInputValue(driver.complianceForm?.ds873 ?? null),
-      ds875: toDateInputValue(driver.complianceForm?.ds875 ?? null),
-      ds875y: toDateInputValue(driver.complianceForm?.ds875y ?? null),
+    const dates: Record<string, string> = {
       annualDefensiveDrivingTest: toDateInputValue(driver.complianceForm?.annualDefensiveDrivingTest ?? null),
-    });
-  }, [driver]);
+    };
+    for (const f of formFieldDefs) {
+      dates[f.key] = toDateInputValue(getFormDate(driver, f));
+    }
+    setFormDates(dates);
+    // Keyed on the set of form keys (not the formFieldDefs array reference) so
+    // renaming a label elsewhere doesn't reset in-progress edits in this drawer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [driver, formFieldDefs.map((f) => f.key).join(",")]);
 
   if (!driver) {
     return (
@@ -101,9 +94,17 @@ export function DriverDrawer() {
 
   function handleSave() {
     if (!driver) return;
-    const form: Partial<ComplianceFormDTO> = {};
-    for (const key of Object.keys(formDates)) {
-      form[key as keyof ComplianceFormDTO] = formDates[key] ? new Date(formDates[key]).toISOString() : null;
+    const form: Partial<ComplianceFormDTO> = {
+      annualDefensiveDrivingTest: formDates.annualDefensiveDrivingTest
+        ? new Date(formDates.annualDefensiveDrivingTest).toISOString()
+        : null,
+    };
+    const customForm: Record<string, string | null> = {};
+    for (const f of formFieldDefs) {
+      const raw = formDates[f.key];
+      const iso = raw ? new Date(raw).toISOString() : null;
+      if (f.isCustom) customForm[f.key] = iso;
+      else form[f.key as keyof ComplianceFormDTO] = iso;
     }
 
     updateDriver.mutate(
@@ -111,6 +112,7 @@ export function DriverDrawer() {
         id: driver.id,
         driver: { status, ...identity },
         form,
+        customForm,
       },
       {
         onSuccess: () => {
@@ -250,10 +252,13 @@ export function DriverDrawer() {
                     <p className="text-xs text-neutral-400 truncate">{f.description}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <ComplianceBadge date={formDates[f.key] ? new Date(formDates[f.key]).toISOString() : null} compact />
+                    <ComplianceBadge
+                      date={formDates[f.key] ? new Date(formDates[f.key]).toISOString() : null}
+                      compact
+                    />
                     <Input
                       type="date"
-                      value={formDates[f.key]}
+                      value={formDates[f.key] ?? ""}
                       onChange={(e) => setFormDates((s) => ({ ...s, [f.key]: e.target.value }))}
                       className="w-[150px]"
                     />

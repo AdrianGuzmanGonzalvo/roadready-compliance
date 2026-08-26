@@ -64,31 +64,32 @@ model Roster {
 }
 
 model Driver {
-  id                String       @id @default(uuid())
-  pfl               String?
-  clientId          String? // "Client ID" from roster-style imports (distinct from driversLicense)
-  company           String? // organization/client the driver is categorized under
-  roster            String? // site/roster code within a company, e.g. "PREK"
-  lastName          String
-  firstName         String
-  phone             String?
-  position          String?
-  driversLicense    String?
-  ssn               String? // stored masked, e.g. ***-**-1234
-  dob               DateTime?
-  licenseClass      String?
-  endorsements      String?
-  restrictions      String?
-  status            DriverStatus @default(ACTIVE)
-  updateResult      String?
-  note              String? // free-text remark, e.g. from a roster's NOTE column
-  medicalCondition  String?
-  bpFollowUp        String?
-  diabeticFollowUp  String?
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  id               String       @id @default(uuid())
+  pfl              String?
+  clientId         String? // "Client ID" from roster-style imports (distinct from driversLicense)
+  company          String? // organization/client the driver is categorized under
+  roster           String? // site/roster code within a company, e.g. "PREK"
+  lastName         String
+  firstName        String
+  phone            String?
+  position         String?
+  driversLicense   String?
+  ssn              String? // stored masked, e.g. ***-**-1234
+  dob              DateTime?
+  licenseClass     String?
+  endorsements     String?
+  restrictions     String?
+  status           DriverStatus @default(ACTIVE)
+  updateResult     String?
+  note             String? // free-text remark, e.g. from a roster's NOTE column
+  medicalCondition String?
+  bpFollowUp       String?
+  diabeticFollowUp String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
-  complianceForm ComplianceForm?
+  complianceForm   ComplianceForm?
+  customFormValues CustomFormValue[]
 
   @@index([lastName, firstName])
   @@index([status])
@@ -115,4 +116,28 @@ model ComplianceForm {
   annualDefensiveDrivingTest DateTime?
 
   updatedAt DateTime @updatedAt
+}
+
+model CustomForm {
+  key         String   @id
+  label       String
+  description String
+  frequency   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  values CustomFormValue[]
+}
+
+model CustomFormValue {
+  id        String    @id @default(uuid())
+  driverId  String
+  formKey   String
+  date      DateTime?
+  updatedAt DateTime  @updatedAt
+
+  driver     Driver     @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  customForm CustomForm @relation(fields: [formKey], references: [key], onDelete: Cascade)
+
+  @@unique([driverId, formKey])
 }

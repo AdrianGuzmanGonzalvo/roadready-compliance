@@ -1,9 +1,12 @@
+"use client";
+
 import type { ElementType } from "react";
 import Link from "next/link";
 import { Users, AlertOctagon, Clock, CalendarClock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { summarizeFormExpiries } from "@/lib/compliance";
+import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import type { DriverDTO } from "@/types/driver";
 
 interface KpiCardsProps {
@@ -43,9 +46,10 @@ function Kpi({
 }
 
 export function KpiCards({ drivers }: KpiCardsProps) {
+  const formFieldDefs = useFormFieldDefs();
   const active = drivers.filter((d) => d.status === "ACTIVE");
   const terminated = drivers.filter((d) => d.status === "TERMINATED");
-  const summary = summarizeFormExpiries(active.map((d) => d.complianceForm));
+  const summary = summarizeFormExpiries(active, new Date(), formFieldDefs);
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
