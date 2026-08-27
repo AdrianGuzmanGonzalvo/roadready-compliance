@@ -58,6 +58,8 @@ skills-lock.json
 
 # source data (contains PII - SSN, DOB, license #, phone)
 *.xlsx
+*.docx
+/Data/
 
 
 /src/generated/prisma

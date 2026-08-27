@@ -37,6 +37,7 @@ export function serializeDriver(driver: DriverWithForm): DriverDTO {
     lastName: driver.lastName,
     firstName: driver.firstName,
     phone: driver.phone,
+    email: driver.email,
     position: driver.position,
     driversLicense: driver.driversLicense,
     ssn: driver.ssn,

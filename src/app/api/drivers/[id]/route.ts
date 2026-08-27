@@ -11,6 +11,7 @@ const DRIVER_TEXT_FIELDS = [
   "lastName",
   "firstName",
   "phone",
+  "email",
   "position",
   "driversLicense",
   "licenseClass",

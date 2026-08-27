@@ -46,6 +46,7 @@ export function DriverDrawer() {
     company: "",
     roster: "",
     phone: "",
+    email: "",
     position: "",
     driversLicense: "",
     licenseClass: "",
@@ -64,6 +65,7 @@ export function DriverDrawer() {
       company: driver.company ?? "",
       roster: driver.roster ?? "",
       phone: driver.phone ?? "",
+      email: driver.email ?? "",
       position: driver.position ?? "",
       driversLicense: driver.driversLicense ?? "",
       licenseClass: driver.licenseClass ?? "",
@@ -192,6 +194,14 @@ export function DriverDrawer() {
             <div className="space-y-1.5">
               <Label>Phone</Label>
               <Input value={identity.phone} onChange={(e) => setIdentity((s) => ({ ...s, phone: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={identity.email}
+                onChange={(e) => setIdentity((s) => ({ ...s, email: e.target.value }))}
+              />
             </div>
             <div className="space-y-1.5">
               <Label>Position</Label>

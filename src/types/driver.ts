@@ -95,6 +95,7 @@ export interface DriverDTO {
   lastName: string;
   firstName: string;
   phone: string | null;
+  email: string | null;
   position: string | null;
   driversLicense: string | null;
   ssn: string | null;

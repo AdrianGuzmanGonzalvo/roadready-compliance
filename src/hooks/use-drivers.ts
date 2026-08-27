@@ -28,6 +28,7 @@ export interface UpdateDriverPayload {
       | "lastName"
       | "firstName"
       | "phone"
+      | "email"
       | "position"
       | "driversLicense"
       | "ssn"
@@ -75,6 +76,7 @@ export interface CreateDriverPayload {
   company?: string;
   roster?: string;
   phone?: string;
+  email?: string;
   position?: string;
   driversLicense?: string;
   licenseClass?: string;

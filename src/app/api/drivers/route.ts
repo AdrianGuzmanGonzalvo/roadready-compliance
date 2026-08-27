@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       company: body.company || null,
       roster: body.roster || null,
       phone: body.phone || null,
+      email: body.email || null,
       position: body.position || null,
       driversLicense: body.driversLicense || null,
       licenseClass: body.licenseClass || null,
