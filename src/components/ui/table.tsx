@@ -3,8 +3,8 @@ import { cn } from "@/lib/utils";
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    <div className="relative w-full overflow-x-auto">
-      <table className={cn("w-full caption-bottom text-sm", className)} {...props} />
+    <div className="relative w-full overflow-x-auto print:overflow-visible">
+      <table className={cn("w-full caption-bottom text-sm print:w-full print:table-fixed", className)} {...props} />
     </div>
   );
 }
@@ -34,7 +34,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
       className={cn(
-        "h-10 whitespace-nowrap px-3 text-left align-middle text-xs font-medium text-neutral-500 uppercase tracking-wide [&:has([role=checkbox])]:pr-0",
+        "h-10 whitespace-nowrap px-3 text-left align-middle text-xs font-medium text-neutral-500 uppercase tracking-wide [&:has([role=checkbox])]:pr-0 print:h-auto print:whitespace-normal print:break-words print:px-2 print:py-1",
         className
       )}
       {...props}
@@ -45,7 +45,10 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
-      className={cn("whitespace-nowrap px-3 py-2.5 align-middle [&:has([role=checkbox])]:pr-0", className)}
+      className={cn(
+        "whitespace-nowrap px-3 py-2.5 align-middle [&:has([role=checkbox])]:pr-0 print:whitespace-normal print:break-words print:px-2 print:py-1 print:text-xs",
+        className
+      )}
       {...props}
     />
   );

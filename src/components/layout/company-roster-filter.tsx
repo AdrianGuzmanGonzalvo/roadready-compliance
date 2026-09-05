@@ -32,8 +32,11 @@ export function CompanyRosterFilter() {
     <div className="flex items-center gap-1.5">
       <Building2 className="size-4 text-neutral-400 hidden sm:block" />
       <Select value={companyFilter} onValueChange={setCompanyFilter}>
-        <SelectTrigger className="w-[150px]" title="Filter by company">
-          <SelectValue placeholder="All Companies" />
+        <SelectTrigger
+          className="w-[150px] sm:w-[260px]"
+          title={companyFilter === "ALL" ? "Filter by company" : companyFilter}
+        >
+          <SelectValue placeholder="All Companies" className="min-w-0 truncate" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="ALL">All Companies</SelectItem>
