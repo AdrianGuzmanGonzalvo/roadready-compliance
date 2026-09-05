@@ -113,10 +113,13 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-50 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-neutral-50 p-4">
       <Suspense fallback={null}>
         <LoginForm />
       </Suspense>
+      <a href="/privacy" className="text-xs text-neutral-400 hover:text-neutral-600 hover:underline">
+        Privacy Policy
+      </a>
     </div>
   );
 }
