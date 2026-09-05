@@ -27,7 +27,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-neutral-200 bg-white">
+    <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-neutral-200 bg-white print:hidden">
       <div className="flex items-center gap-2 px-5 h-14 border-b border-neutral-100">
         <ShieldCheck className="size-5 text-neutral-900" />
         <span className="font-semibold text-neutral-900 text-sm leading-tight">

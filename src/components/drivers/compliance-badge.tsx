@@ -19,7 +19,7 @@ export function ComplianceBadge({ date, compact = false }: { date: string | null
     <span
       title={format(new Date(date), "MMM d, yyyy")}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap print:whitespace-normal print:px-1.5 print:text-[10px]",
         config.badgeClass
       )}
     >

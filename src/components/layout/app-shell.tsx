@@ -28,7 +28,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="flex flex-1 flex-col min-w-0">
         <TopBar />
-        <nav className="flex md:hidden items-center justify-around border-b border-neutral-200 bg-white h-12">
+        <nav className="flex md:hidden items-center justify-around border-b border-neutral-200 bg-white h-12 print:hidden">
           {mobileNav.map((item) => {
             const Icon = item.icon;
             const active = item.match ? pathname.startsWith(item.match) : pathname === item.href;
