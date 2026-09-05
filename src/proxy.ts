@@ -3,7 +3,7 @@ import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|login|privacy|ads.txt|robots.txt|sitemap.xml|api/auth/login|api/auth/tenants).*)",
+    "/((?!_next/static|_next/image|favicon.ico|login|robots.txt|sitemap.xml|api/auth/login|api/auth/tenants).*)",
   ],
 };
 
