@@ -7,6 +7,9 @@ import { useUIStore } from "@/store/ui-store";
 import { filterByCompanyRoster } from "@/lib/scope";
 import { KpiCards } from "@/components/dashboard/kpi-cards";
 import { ExpirationMatrix } from "@/components/dashboard/expiration-matrix";
+import { AdBanner } from "@/components/ads/ad-banner";
+
+const DASHBOARD_AD_SLOT = "9072065418";
 
 export default function DashboardPage() {
   const { data: drivers, isLoading, isError } = useDrivers();
@@ -30,6 +33,8 @@ export default function DashboardPage() {
           {companyFilter !== "ALL" && <span className="text-neutral-400"> · Scoped to {scopeLabel}</span>}
         </p>
       </div>
+
+      <AdBanner slot={DASHBOARD_AD_SLOT} className="print:hidden" />
 
       {isLoading && (
         <div className="flex items-center gap-2 text-neutral-400 text-sm py-12 justify-center">
