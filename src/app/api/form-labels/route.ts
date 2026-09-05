@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { requireAdmin, getSessionUser } from "@/lib/auth";
 import { FORM_FIELD_DEFS } from "@/types/driver";
 
@@ -12,8 +11,8 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const [rows, customForms] = await Promise.all([
-    prisma.formLabel.findMany(),
-    prisma.customForm.findMany({ orderBy: { createdAt: "asc" } }),
+    user.db.formLabel.findMany(),
+    user.db.customForm.findMany({ orderBy: { createdAt: "asc" } }),
   ]);
   const overrides = Object.fromEntries(
     rows.map((r) => [
@@ -53,7 +52,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Invalid field" }, { status: 400 });
   }
 
-  const existing = await prisma.formLabel.findUnique({ where: { key } });
+  const existing = await admin.db.formLabel.findUnique({ where: { key } });
   const next = {
     label: existing?.label ?? null,
     description: existing?.description ?? null,
@@ -62,11 +61,11 @@ export async function PATCH(req: Request) {
   };
 
   if (!next.label && !next.description && !next.frequency) {
-    await prisma.formLabel.deleteMany({ where: { key } });
+    await admin.db.formLabel.deleteMany({ where: { key } });
     return NextResponse.json({ ok: true });
   }
 
-  const row = await prisma.formLabel.upsert({
+  const row = await admin.db.formLabel.upsert({
     where: { key },
     create: { key, ...next },
     update: next,

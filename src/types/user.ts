@@ -11,4 +11,5 @@ export interface SessionUserDTO {
   id: string;
   username: string;
   role: UserRole;
+  tenantCode: string;
 }

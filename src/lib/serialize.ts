@@ -1,8 +1,12 @@
-import type { Driver, ComplianceForm, CustomFormValue, Company, Roster } from "@/generated/prisma/client";
+import type { Driver, ComplianceForm, CustomFormValue, DriverDocument, Company, Roster } from "@/generated/prisma/client";
 import type { DriverDTO, ComplianceFormDTO } from "@/types/driver";
 import type { CompanyDTO, RosterDTO } from "@/types/company";
 
-type DriverWithForm = Driver & { complianceForm: ComplianceForm | null; customFormValues: CustomFormValue[] };
+type DriverWithForm = Driver & {
+  complianceForm: ComplianceForm | null;
+  customFormValues: CustomFormValue[];
+  documents: DriverDocument[];
+};
 type CompanyWithRosters = Company & { rosters: Roster[] };
 
 function toIso(d: Date | null | undefined): string | null {
@@ -27,6 +31,17 @@ export function serializeDriver(driver: DriverWithForm): DriverDTO {
     : null;
 
   const customForms = Object.fromEntries(driver.customFormValues.map((v) => [v.formKey, toIso(v.date)]));
+
+  const documents = driver.documents
+    .map((d) => ({
+      id: d.id,
+      label: d.label,
+      filename: d.filename,
+      contentType: d.contentType,
+      size: d.size,
+      uploadedAt: d.uploadedAt.toISOString(),
+    }))
+    .sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt));
 
   return {
     id: driver.id,
@@ -55,6 +70,7 @@ export function serializeDriver(driver: DriverWithForm): DriverDTO {
     updatedAt: driver.updatedAt.toISOString(),
     complianceForm: form,
     customForms,
+    documents,
   };
 }
 

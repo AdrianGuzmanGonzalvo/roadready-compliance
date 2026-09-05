@@ -1,17 +1,23 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/auth";
 import { serializeDriver } from "@/lib/serialize";
 import { DRIVER_STATUSES } from "@/types/driver";
 
 export async function GET() {
-  const drivers = await prisma.driver.findMany({
-    include: { complianceForm: true, customFormValues: true },
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const drivers = await user.db.driver.findMany({
+    include: { complianceForm: true, customFormValues: true, documents: true },
     orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
   });
   return NextResponse.json({ drivers: drivers.map(serializeDriver) });
 }
 
 export async function POST(req: Request) {
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const body = await req.json();
 
   const lastName = typeof body.lastName === "string" ? body.lastName.trim() : "";
@@ -22,7 +28,7 @@ export async function POST(req: Request) {
 
   const status = DRIVER_STATUSES.includes(body.status) ? body.status : "ACTIVE";
 
-  const driver = await prisma.driver.create({
+  const driver = await user.db.driver.create({
     data: {
       lastName,
       firstName,
@@ -40,7 +46,7 @@ export async function POST(req: Request) {
       note: body.note || null,
       complianceForm: { create: {} },
     },
-    include: { complianceForm: true, customFormValues: true },
+    include: { complianceForm: true, customFormValues: true, documents: true },
   });
 
   return NextResponse.json({ driver: serializeDriver(driver) }, { status: 201 });

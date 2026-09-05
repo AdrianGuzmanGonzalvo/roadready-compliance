@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/auth";
 import { serializeCompany } from "@/lib/serialize";
 
 const TEXT_FIELDS = ["name", "address", "contactName", "contactPhone", "contactEmail", "notes"] as const;
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id } = await params;
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
@@ -20,15 +23,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
   }
 
-  const existing = await prisma.company.findUnique({ where: { id } });
+  const existing = await user.db.company.findUnique({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Company not found" }, { status: 404 });
 
   if (data.name && data.name !== existing.name) {
-    const nameTaken = await prisma.company.findUnique({ where: { name: data.name } });
+    const nameTaken = await user.db.company.findUnique({ where: { name: data.name } });
     if (nameTaken) return NextResponse.json({ error: "A company with that name already exists" }, { status: 409 });
   }
 
-  const company = await prisma.company.update({
+  const company = await user.db.company.update({
     where: { id },
     data,
     include: { rosters: { orderBy: { name: "asc" } } },
@@ -38,7 +41,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const { id } = await params;
-  await prisma.company.delete({ where: { id } }).catch(() => null);
+  await user.db.company.delete({ where: { id } }).catch(() => null);
   return NextResponse.json({ ok: true });
 }

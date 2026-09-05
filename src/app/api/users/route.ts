@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { hashPassword, requireAdmin } from "@/lib/auth";
 import type { UserDTO, UserRole } from "@/types/user";
 
@@ -11,7 +10,7 @@ export async function GET() {
   const admin = await requireAdmin();
   if (admin instanceof NextResponse) return admin;
 
-  const users = await prisma.user.findMany({
+  const users = await admin.db.user.findMany({
     select: { id: true, username: true, role: true, createdAt: true },
     orderBy: { username: "asc" },
   });
@@ -34,11 +33,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Password must be at least 4 characters" }, { status: 400 });
   }
 
-  const existing = await prisma.user.findUnique({ where: { username } });
+  const existing = await admin.db.user.findUnique({ where: { username } });
   if (existing) return NextResponse.json({ error: "That username is already taken" }, { status: 409 });
 
   const passwordHash = await hashPassword(password);
-  const user = await prisma.user.create({
+  const user = await admin.db.user.create({
     data: { username, passwordHash, role },
     select: { id: true, username: true, role: true, createdAt: true },
   });

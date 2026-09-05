@@ -10,6 +10,14 @@ A web application for tracking Article 19-A Driver Qualification Record complian
 - **Database:** SQLite via Prisma ORM (driver adapter: `@libsql/client`)
 - **File processing:** SheetJS (`xlsx`) for Excel import parsing and export
 
+## Multi-tenancy
+
+Each company using this system has its own isolated database (see `src/lib/prisma.ts`). A separate control-plane database (`CONTROL_DATABASE_URL`) holds only the `Tenant` registry — a 4-digit login code mapped to that company's own `dbUrl`/`dbAuthToken`. Login asks for company code + username + password; everything after that (drivers, compliance forms, documents, other users) is scoped to that tenant's database only.
+
+- **Provision a new company:** `npx tsx scripts/create-tenant.ts "Company Name" [admin-username] [admin-password]` — assigns the next 4-digit code, creates the database (a real Turso database if `TURSO_API_TOKEN`/`TURSO_ORG` are set, otherwise a local SQLite file under `prisma/tenants/`), migrates it, and seeds the first ADMIN user.
+- **Roll out a schema change to every company:** after `npx prisma migrate dev` creates a new migration, run `npx tsx scripts/migrate-all-tenants.ts` to apply it to the control database and every tenant database.
+- **Turn an existing database into a tenant** (e.g. this system's original single-tenant data): `DATABASE_URL=... [TURSO_AUTH_TOKEN=...] npx tsx scripts/register-existing-tenant.ts "Company Name" [code]`.
+
 ## Getting Started
 
 1. Install dependencies:
@@ -24,19 +32,26 @@ A web application for tracking Article 19-A Driver Qualification Record complian
    cp .env.example .env
    ```
 
-3. Create the database and apply migrations:
+3. Create the local dev database and apply migrations:
 
    ```bash
    npx prisma migrate dev
    ```
 
-4. Run the dev server:
+4. Register that database as your first tenant (company code `0000`):
+
+   ```bash
+   npx tsx scripts/register-existing-tenant.ts "Local Dev" 0000
+   npx tsx scripts/create-user.ts admin admin-password
+   ```
+
+5. Run the dev server:
 
    ```bash
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000).
+   Open [http://localhost:3000](http://localhost:3000) and sign in with code `0000`.
 
 ## Importing driver data
 
@@ -44,7 +59,8 @@ Use the **Upload Excel** button (sidebar or top bar) to import a `.xlsx` workboo
 
 ## Project structure
 
-- `prisma/schema.prisma` — `Driver` and `ComplianceForm` models
+- `prisma/schema.prisma` — `Driver` and `ComplianceForm` models, plus the control-plane `Tenant` model
+- `scripts/create-tenant.ts`, `scripts/migrate-all-tenants.ts`, `scripts/register-existing-tenant.ts` — multi-tenant provisioning/maintenance
 - `src/lib/excel-parser.ts` — workbook import/merge logic
 - `src/lib/compliance.ts` — days-remaining and status-badge logic
 - `src/app/api/drivers/*` — REST API routes (list, update, import)
@@ -53,5 +69,5 @@ Use the **Upload Excel** button (sidebar or top bar) to import a `.xlsx` workboo
 
 ## Notes
 
-- The SQLite database file and any imported `.xlsx` rosters are gitignored — they contain PII (SSNs, DOB, license numbers) and should not be committed or emailed unmasked.
+- SQLite database files (the control database and every tenant's database, local or under `prisma/tenants/`) and any imported `.xlsx` rosters are gitignored — they contain PII (SSNs, DOB, license numbers) and should not be committed or emailed unmasked.
 - SSNs are masked to last-4 on import.

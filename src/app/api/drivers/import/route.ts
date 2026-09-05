@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/auth";
 import { parseDriverWorkbook, normalizeKey } from "@/lib/excel-parser";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
   const formData = await req.formData();
   const file = formData.get("file");
 
@@ -31,7 +34,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const existingDrivers = await prisma.driver.findMany({ select: { id: true, lastName: true, firstName: true } });
+  const existingDrivers = await user.db.driver.findMany({ select: { id: true, lastName: true, firstName: true } });
   const existingByKey = new Map(existingDrivers.map((d) => [normalizeKey(d.lastName, d.firstName), d.id]));
 
   let created = 0;
@@ -41,7 +44,7 @@ export async function POST(req: Request) {
     const existingId = existingByKey.get(record.key);
 
     if (existingId) {
-      await prisma.driver.update({
+      await user.db.driver.update({
         where: { id: existingId },
         data: {
           ...record.driver,
@@ -52,7 +55,7 @@ export async function POST(req: Request) {
       });
       updated++;
     } else {
-      await prisma.driver.create({
+      await user.db.driver.create({
         data: {
           ...record.driver,
           complianceForm: { create: record.form },

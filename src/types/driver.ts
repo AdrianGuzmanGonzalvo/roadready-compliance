@@ -113,4 +113,14 @@ export interface DriverDTO {
   updatedAt: string;
   complianceForm: ComplianceFormDTO | null;
   customForms: Record<string, string | null>;
+  documents: DocumentDTO[];
+}
+
+export interface DocumentDTO {
+  id: string;
+  label: string;
+  filename: string;
+  contentType: string | null;
+  size: number;
+  uploadedAt: string;
 }

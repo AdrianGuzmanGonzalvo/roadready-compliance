@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import type { PrismaClient } from "@/generated/prisma/client";
 import { requireAdmin } from "@/lib/auth";
 import { FORM_FIELD_DEFS } from "@/types/driver";
 
@@ -14,9 +14,9 @@ function slugify(label: string): string {
   return base || "form";
 }
 
-async function generateUniqueKey(label: string): Promise<string> {
+async function generateUniqueKey(db: PrismaClient, label: string): Promise<string> {
   const base = slugify(label);
-  const existing = new Set((await prisma.customForm.findMany({ select: { key: true } })).map((f) => f.key));
+  const existing = new Set((await db.customForm.findMany({ select: { key: true } })).map((f) => f.key));
 
   if (!BUILT_IN_KEYS.has(base) && !existing.has(base)) return base;
 
@@ -36,9 +36,9 @@ export async function POST(req: Request) {
 
   if (!label) return NextResponse.json({ error: "Form name is required" }, { status: 400 });
 
-  const key = await generateUniqueKey(label);
+  const key = await generateUniqueKey(admin.db, label);
 
-  const customForm = await prisma.customForm.create({
+  const customForm = await admin.db.customForm.create({
     data: { key, label, description, frequency },
   });
 

@@ -13,6 +13,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/";
 
+  const [code, setCode] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
@@ -26,13 +27,13 @@ function LoginForm() {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ code, username, password }),
     });
 
     setLoading(false);
 
     if (!res.ok) {
-      setError("Incorrect username or password.");
+      setError("Incorrect company code, username, or password.");
       return;
     }
 
@@ -54,12 +55,25 @@ function LoginForm() {
       </div>
 
       <div className="space-y-1.5">
+        <Label htmlFor="code">Company code</Label>
+        <Input
+          id="code"
+          value={code}
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
+          inputMode="numeric"
+          autoComplete="off"
+          placeholder="0000"
+          maxLength={4}
+          autoFocus
+        />
+      </div>
+
+      <div className="space-y-1.5">
         <Label htmlFor="username">Username</Label>
         <Input
           id="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          autoFocus
           autoComplete="username"
         />
       </div>
@@ -77,7 +91,7 @@ function LoginForm() {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      <Button type="submit" disabled={loading || !username || !password}>
+      <Button type="submit" disabled={loading || code.length !== 4 || !username || !password}>
         {loading ? <Loader2 className="size-4 animate-spin" /> : "Sign in"}
       </Button>
     </form>

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Trash2, UploadCloud, FileText, Image as ImageIcon, Paperclip, Loader2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -20,6 +20,7 @@ import { CompanyRosterFields } from "@/components/companies/company-roster-field
 import { useUIStore } from "@/store/ui-store";
 import { useDrivers, useUpdateDriver, useDeleteDriver } from "@/hooks/use-drivers";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
+import { useUploadDriverDocument, useDeleteDriverDocument } from "@/hooks/use-driver-documents";
 import { getFormDate } from "@/lib/compliance";
 import type { ComplianceFormDTO, DriverStatusValue } from "@/types/driver";
 
@@ -30,6 +31,12 @@ function toDateInputValue(iso: string | null): string {
   return d.toISOString().slice(0, 10);
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function DriverDrawer() {
   const selectedDriverId = useUIStore((s) => s.selectedDriverId);
   const closeDriver = useUIStore((s) => s.closeDriver);
@@ -37,6 +44,12 @@ export function DriverDrawer() {
   const updateDriver = useUpdateDriver();
   const deleteDriver = useDeleteDriver();
   const formFieldDefs = useFormFieldDefs();
+  const uploadDocument = useUploadDriverDocument();
+  const deleteDocument = useDeleteDriverDocument();
+
+  const [docFile, setDocFile] = React.useState<File | null>(null);
+  const [docLabel, setDocLabel] = React.useState("");
+  const docInputRef = React.useRef<HTMLInputElement>(null);
 
   const driver = drivers?.find((d) => d.id === selectedDriverId) ?? null;
 
@@ -81,6 +94,9 @@ export function DriverDrawer() {
       dates[f.key] = toDateInputValue(getFormDate(driver, f));
     }
     setFormDates(dates);
+    setDocFile(null);
+    setDocLabel("");
+    if (docInputRef.current) docInputRef.current.value = "";
     // Keyed on the set of form keys (not the formFieldDefs array reference) so
     // renaming a label elsewhere doesn't reset in-progress edits in this drawer.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -138,6 +154,35 @@ export function DriverDrawer() {
       },
       onError: () => toast.error("Failed to delete driver"),
     });
+  }
+
+  function handleUploadDocument() {
+    if (!driver || !docFile) return;
+    const label = docLabel.trim() || docFile.name;
+    uploadDocument.mutate(
+      { driverId: driver.id, file: docFile, label },
+      {
+        onSuccess: () => {
+          toast.success(`Uploaded ${label}`);
+          setDocFile(null);
+          setDocLabel("");
+          if (docInputRef.current) docInputRef.current.value = "";
+        },
+        onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to upload document"),
+      }
+    );
+  }
+
+  function handleDeleteDocument(documentId: string, label: string) {
+    if (!driver) return;
+    if (!window.confirm(`Delete "${label}"? This cannot be undone.`)) return;
+    deleteDocument.mutate(
+      { driverId: driver.id, documentId },
+      {
+        onSuccess: () => toast.success(`Deleted ${label}`),
+        onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to delete document"),
+      }
+    );
   }
 
   return (
@@ -275,6 +320,84 @@ export function DriverDrawer() {
                   </div>
                 </div>
               ))}
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold text-neutral-900">Documents</h3>
+
+            {driver.documents.length > 0 && (
+              <ul className="flex flex-col gap-2">
+                {driver.documents.map((doc) => (
+                  <li
+                    key={doc.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-neutral-100 p-2.5"
+                  >
+                    <a
+                      href={`/api/drivers/${driver.id}/documents/${doc.id}/file`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex min-w-0 items-center gap-2.5 hover:opacity-80"
+                    >
+                      {doc.contentType?.startsWith("image/") ? (
+                        <ImageIcon className="size-5 shrink-0 text-neutral-400" />
+                      ) : (
+                        <FileText className="size-5 shrink-0 text-neutral-400" />
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-neutral-900">{doc.label}</p>
+                        <p className="truncate text-xs text-neutral-400">
+                          {doc.filename} · {formatBytes(doc.size)} ·{" "}
+                          {new Date(doc.uploadedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </a>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteDocument(doc.id, doc.label)}
+                      disabled={deleteDocument.isPending}
+                      title="Delete document"
+                      className="size-8 shrink-0 text-neutral-400 hover:text-red-600"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="flex items-center gap-2 rounded-lg border border-dashed border-neutral-200 p-2.5">
+              <label
+                htmlFor="driver-doc-input"
+                className="flex shrink-0 cursor-pointer items-center gap-1.5 text-sm text-neutral-600 hover:text-neutral-900"
+              >
+                <Paperclip className="size-4" />
+                {docFile ? docFile.name : "Choose file"}
+              </label>
+              <input
+                id="driver-doc-input"
+                ref={docInputRef}
+                type="file"
+                accept="application/pdf,image/*"
+                className="hidden"
+                onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
+              />
+              <Input
+                placeholder="Label (e.g. DS-703 signed)"
+                value={docLabel}
+                onChange={(e) => setDocLabel(e.target.value)}
+                className="h-8 flex-1 text-sm"
+              />
+              <Button
+                size="sm"
+                onClick={handleUploadDocument}
+                disabled={!docFile || uploadDocument.isPending}
+                className="h-8 shrink-0"
+              >
+                {uploadDocument.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <UploadCloud className="size-3.5" />}
+                Upload
+              </Button>
             </div>
           </section>
         </SheetBody>

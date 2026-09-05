@@ -21,6 +21,26 @@ enum Role {
   USER
 }
 
+enum TenantStatus {
+  ACTIVE
+  DISABLED
+}
+
+/// Control-plane record: one row per company using the system, pointing at
+/// that company's own isolated database. Lives only in the control database
+/// (see src/lib/prisma.ts) — tenant databases carry this table too (same
+/// shared schema/migrations) but never populate it.
+model Tenant {
+  id          String       @id @default(uuid())
+  code        String       @unique // 4-digit login code, e.g. "0000"
+  name        String
+  dbUrl       String
+  dbAuthToken String?
+  status      TenantStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
 model User {
   id           String   @id @default(uuid())
   username     String   @unique
@@ -91,6 +111,7 @@ model Driver {
 
   complianceForm   ComplianceForm?
   customFormValues CustomFormValue[]
+  documents        DriverDocument[]
 
   @@index([lastName, firstName])
   @@index([status])
@@ -141,4 +162,16 @@ model CustomFormValue {
   customForm CustomForm @relation(fields: [formKey], references: [key], onDelete: Cascade)
 
   @@unique([driverId, formKey])
+}
+
+model DriverDocument {
+  id          String   @id @default(uuid())
+  driverId    String
+  driver      Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  label       String
+  filename    String
+  pathname    String   @unique
+  contentType String?
+  size        Int
+  uploadedAt  DateTime @default(now())
 }
