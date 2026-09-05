@@ -7,17 +7,27 @@ import { ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/";
 
+  const [codes, setCodes] = React.useState<string[]>([]);
+  const [tenantsError, setTenantsError] = React.useState(false);
   const [code, setCode] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    fetch("/api/auth/tenants")
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data) => setCodes(data.codes ?? []))
+      .catch(() => setTenantsError(true));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,26 +65,13 @@ function LoginForm() {
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="code">Company code</Label>
-        <Input
-          id="code"
-          value={code}
-          onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 4))}
-          inputMode="numeric"
-          autoComplete="off"
-          placeholder="0000"
-          maxLength={4}
-          autoFocus
-        />
-      </div>
-
-      <div className="space-y-1.5">
         <Label htmlFor="username">Username</Label>
         <Input
           id="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="username"
+          autoFocus
         />
       </div>
 
@@ -87,6 +84,22 @@ function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="current-password"
         />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="code">Company code</Label>
+        <Select value={code} onValueChange={setCode}>
+          <SelectTrigger id="code" className="w-full">
+            <SelectValue placeholder={tenantsError ? "Couldn't load companies" : "Select your company..."} />
+          </SelectTrigger>
+          <SelectContent>
+            {codes.map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
