@@ -64,10 +64,19 @@ export async function getTenantByCode(code: string) {
   return tenant;
 }
 
+export type Role = "ADMIN" | "USER" | "DEMO" | "SIMPLE_USER";
+
+/** Roles that can view everything but never create, update, or delete anything. */
+const READ_ONLY_ROLES: ReadonlySet<Role> = new Set(["DEMO", "SIMPLE_USER"]);
+
+export function isReadOnlyRole(role: Role): boolean {
+  return READ_ONLY_ROLES.has(role);
+}
+
 export interface SessionUser {
   id: string;
   username: string;
-  role: "ADMIN" | "USER" | "DEMO";
+  role: Role;
   tenantId: string;
   tenantCode: string;
   /** Prisma client scoped to this user's own tenant database — use this, never a global client. */
@@ -103,12 +112,13 @@ export async function requireAdmin(): Promise<SessionUser | NextResponse> {
 
 /**
  * For API routes: resolves the current user, or returns a 401/403 NextResponse
- * if not signed in or signed in as a read-only DEMO user. Use this instead of
- * getSessionUser() in any route that creates, updates, or deletes data.
+ * if not signed in or signed in as a read-only role (see READ_ONLY_ROLES). Use
+ * this instead of getSessionUser() in any route that creates, updates, or
+ * deletes data.
  */
 export async function requireWriteAccess(): Promise<SessionUser | NextResponse> {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (user.role === "DEMO") return NextResponse.json({ error: "Demo accounts are read-only" }, { status: 403 });
+  if (READ_ONLY_ROLES.has(user.role)) return NextResponse.json({ error: "This account is read-only" }, { status: 403 });
   return user;
 }

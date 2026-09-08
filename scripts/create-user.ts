@@ -4,17 +4,17 @@
 // Tenant row in the control database. Defaults to prisma/dev.db via .env.
 // For creating a brand-new company (tenant) from scratch, use
 // scripts/create-tenant.ts instead, which also assigns its login code.
-// Usage: npx tsx scripts/create-user.ts <username> <password> [ADMIN|USER|DEMO]
+// Usage: npx tsx scripts/create-user.ts <username> <password> [ADMIN|USER|DEMO|SIMPLE_USER]
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { hashPassword } from "../src/lib/auth";
 
 const [, , username, password, roleArg] = process.argv;
-const VALID_ROLES = ["ADMIN", "USER", "DEMO"] as const;
+const VALID_ROLES = ["ADMIN", "USER", "DEMO", "SIMPLE_USER"] as const;
 type Role = (typeof VALID_ROLES)[number];
 
 if (!username || !password) {
-  console.error("Usage: npx tsx scripts/create-user.ts <username> <password> [ADMIN|USER|DEMO]");
+  console.error("Usage: npx tsx scripts/create-user.ts <username> <password> [ADMIN|USER|DEMO|SIMPLE_USER]");
   process.exit(1);
 }
 if (roleArg && !VALID_ROLES.includes(roleArg as Role)) {

@@ -13,8 +13,11 @@ export function useCurrentUser() {
   return useQuery({ queryKey: ["current-user"], queryFn: fetchCurrentUser });
 }
 
-/** False for a DEMO (read-only) account, or while the current user hasn't loaded yet. */
+/** Roles that can view everything but never create, update, or delete anything — keep in sync with src/lib/auth.ts. */
+const READ_ONLY_ROLES = new Set(["DEMO", "SIMPLE_USER"]);
+
+/** False for a read-only (Demo/Simple User) account, or while the current user hasn't loaded yet. */
 export function useCanEdit(): boolean {
   const { data: currentUser } = useCurrentUser();
-  return currentUser?.role !== "DEMO" && !!currentUser;
+  return !!currentUser && !READ_ONLY_ROLES.has(currentUser.role);
 }

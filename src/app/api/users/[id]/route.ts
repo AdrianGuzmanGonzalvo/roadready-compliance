@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { hashPassword, requireAdmin } from "@/lib/auth";
 import type { UserDTO, UserRole } from "@/types/user";
 
-const VALID_ROLES: UserRole[] = ["ADMIN", "USER", "DEMO"];
+const VALID_ROLES: UserRole[] = ["ADMIN", "USER", "DEMO", "SIMPLE_USER"];
 
 function serializeUser(user: { id: string; username: string; role: string; createdAt: Date }): UserDTO {
   return { id: user.id, username: user.username, role: user.role as UserRole, createdAt: user.createdAt.toISOString() };
