@@ -29,7 +29,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-neutral-200 bg-white print:hidden">
+    <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-neutral-200 bg-white print:hidden sticky top-0 h-screen overflow-y-auto">
       <div className="flex items-center gap-2 px-5 h-14 border-b border-neutral-100">
         <ShieldCheck className="size-5 text-neutral-900" />
         <span className="font-semibold text-neutral-900 text-sm leading-tight">
