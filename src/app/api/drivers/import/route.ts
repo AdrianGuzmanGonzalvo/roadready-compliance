@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth";
+import { requireWriteAccess } from "@/lib/auth";
 import { parseDriverWorkbook, normalizeKey } from "@/lib/excel-parser";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await requireWriteAccess();
+  if (user instanceof NextResponse) return user;
 
   const formData = await req.formData();
   const file = formData.get("file");

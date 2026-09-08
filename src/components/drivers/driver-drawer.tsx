@@ -21,6 +21,7 @@ import { useUIStore } from "@/store/ui-store";
 import { useDrivers, useUpdateDriver, useDeleteDriver } from "@/hooks/use-drivers";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { useUploadDriverDocument, useDeleteDriverDocument } from "@/hooks/use-driver-documents";
+import { useCanEdit } from "@/hooks/use-auth";
 import { getFormDate } from "@/lib/compliance";
 import type { ComplianceFormDTO, DriverStatusValue } from "@/types/driver";
 
@@ -46,6 +47,7 @@ export function DriverDrawer() {
   const formFieldDefs = useFormFieldDefs();
   const uploadDocument = useUploadDriverDocument();
   const deleteDocument = useDeleteDriverDocument();
+  const canEdit = useCanEdit();
 
   const [docFile, setDocFile] = React.useState<File | null>(null);
   const [docLabel, setDocLabel] = React.useState("");
@@ -208,6 +210,7 @@ export function DriverDrawer() {
         </SheetHeader>
 
         <SheetBody className="flex flex-col gap-6 py-4">
+        <fieldset disabled={!canEdit} className="contents">
           <section className="grid grid-cols-2 gap-3">
             <div className="col-span-2 space-y-1.5">
               <Label>Status</Label>
@@ -367,59 +370,70 @@ export function DriverDrawer() {
               </ul>
             )}
 
-            <div className="flex items-center gap-2 rounded-lg border border-dashed border-neutral-200 p-2.5">
-              <label
-                htmlFor="driver-doc-input"
-                className="flex shrink-0 cursor-pointer items-center gap-1.5 text-sm text-neutral-600 hover:text-neutral-900"
-              >
-                <Paperclip className="size-4" />
-                {docFile ? docFile.name : "Choose file"}
-              </label>
-              <input
-                id="driver-doc-input"
-                ref={docInputRef}
-                type="file"
-                accept="application/pdf,image/*"
-                className="hidden"
-                onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
-              />
-              <Input
-                placeholder="Label (e.g. DS-703 signed)"
-                value={docLabel}
-                onChange={(e) => setDocLabel(e.target.value)}
-                className="h-8 flex-1 text-sm"
-              />
-              <Button
-                size="sm"
-                onClick={handleUploadDocument}
-                disabled={!docFile || uploadDocument.isPending}
-                className="h-8 shrink-0"
-              >
-                {uploadDocument.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <UploadCloud className="size-3.5" />}
-                Upload
-              </Button>
-            </div>
+            {canEdit && (
+              <div className="flex items-center gap-2 rounded-lg border border-dashed border-neutral-200 p-2.5">
+                <label
+                  htmlFor="driver-doc-input"
+                  className="flex shrink-0 cursor-pointer items-center gap-1.5 text-sm text-neutral-600 hover:text-neutral-900"
+                >
+                  <Paperclip className="size-4" />
+                  {docFile ? docFile.name : "Choose file"}
+                </label>
+                <input
+                  id="driver-doc-input"
+                  ref={docInputRef}
+                  type="file"
+                  accept="application/pdf,image/*"
+                  className="hidden"
+                  onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
+                />
+                <Input
+                  placeholder="Label (e.g. DS-703 signed)"
+                  value={docLabel}
+                  onChange={(e) => setDocLabel(e.target.value)}
+                  className="h-8 flex-1 text-sm"
+                />
+                <Button
+                  size="sm"
+                  onClick={handleUploadDocument}
+                  disabled={!docFile || uploadDocument.isPending}
+                  className="h-8 shrink-0"
+                >
+                  {uploadDocument.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <UploadCloud className="size-3.5" />}
+                  Upload
+                </Button>
+              </div>
+            )}
           </section>
+        </fieldset>
         </SheetBody>
 
         <div className="flex items-center justify-between gap-2 border-t border-neutral-100 pt-4">
-          <Button
-            variant="ghost"
-            onClick={handleDelete}
-            disabled={deleteDriver.isPending}
-            className="text-red-600 hover:bg-red-50 hover:text-red-700"
-          >
-            <Trash2 className="size-4" />
-            {deleteDriver.isPending ? "Deleting..." : "Delete Driver"}
-          </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={closeDriver}>
-              Cancel
+          {canEdit ? (
+            <>
+              <Button
+                variant="ghost"
+                onClick={handleDelete}
+                disabled={deleteDriver.isPending}
+                className="text-red-600 hover:bg-red-50 hover:text-red-700"
+              >
+                <Trash2 className="size-4" />
+                {deleteDriver.isPending ? "Deleting..." : "Delete Driver"}
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={closeDriver}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSave} disabled={updateDriver.isPending}>
+                  {updateDriver.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <Button variant="outline" onClick={closeDriver} className="ml-auto">
+              Close
             </Button>
-            <Button onClick={handleSave} disabled={updateDriver.isPending}>
-              {updateDriver.isPending ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

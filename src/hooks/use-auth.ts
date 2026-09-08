@@ -12,3 +12,9 @@ async function fetchCurrentUser(): Promise<SessionUserDTO> {
 export function useCurrentUser() {
   return useQuery({ queryKey: ["current-user"], queryFn: fetchCurrentUser });
 }
+
+/** False for a DEMO (read-only) account, or while the current user hasn't loaded yet. */
+export function useCanEdit(): boolean {
+  const { data: currentUser } = useCurrentUser();
+  return currentUser?.role !== "DEMO" && !!currentUser;
+}

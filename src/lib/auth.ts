@@ -67,7 +67,7 @@ export async function getTenantByCode(code: string) {
 export interface SessionUser {
   id: string;
   username: string;
-  role: "ADMIN" | "USER";
+  role: "ADMIN" | "USER" | "DEMO";
   tenantId: string;
   tenantCode: string;
   /** Prisma client scoped to this user's own tenant database — use this, never a global client. */
@@ -98,5 +98,17 @@ export async function requireAdmin(): Promise<SessionUser | NextResponse> {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (user.role !== "ADMIN") return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  return user;
+}
+
+/**
+ * For API routes: resolves the current user, or returns a 401/403 NextResponse
+ * if not signed in or signed in as a read-only DEMO user. Use this instead of
+ * getSessionUser() in any route that creates, updates, or deletes data.
+ */
+export async function requireWriteAccess(): Promise<SessionUser | NextResponse> {
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (user.role === "DEMO") return NextResponse.json({ error: "Demo accounts are read-only" }, { status: 403 });
   return user;
 }

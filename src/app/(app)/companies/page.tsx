@@ -8,11 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CompanyDialog } from "@/components/companies/company-dialog";
 import { RosterManager } from "@/components/companies/roster-manager";
+import { useCanEdit } from "@/hooks/use-auth";
 import type { CompanyDTO } from "@/types/company";
 
 export default function CompaniesPage() {
   const { data: companies, isLoading, isError } = useCompanies();
   const deleteCompany = useDeleteCompany();
+  const canEdit = useCanEdit();
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingCompany, setEditingCompany] = React.useState<CompanyDTO | null>(null);
@@ -50,10 +52,12 @@ export default function CompaniesPage() {
             Manage companies and their rosters. These populate the Company/Roster dropdowns when assigning drivers.
           </p>
         </div>
-        <Button size="sm" onClick={openAddDialog}>
-          <Plus className="size-4" />
-          Add Company
-        </Button>
+        {canEdit && (
+          <Button size="sm" onClick={openAddDialog}>
+            <Plus className="size-4" />
+            Add Company
+          </Button>
+        )}
       </div>
 
       {isLoading && (
@@ -74,10 +78,12 @@ export default function CompaniesPage() {
           <CardContent className="flex flex-col items-center gap-2 py-12 text-center">
             <Building2 className="size-8 text-neutral-300" />
             <p className="text-sm text-neutral-500">No companies yet.</p>
-            <Button size="sm" variant="outline" onClick={openAddDialog}>
-              <Plus className="size-4" />
-              Add your first company
-            </Button>
+            {canEdit && (
+              <Button size="sm" variant="outline" onClick={openAddDialog}>
+                <Plus className="size-4" />
+                Add your first company
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
@@ -113,20 +119,22 @@ export default function CompaniesPage() {
                     </div>
                     {company.notes && <p className="mt-1 text-xs text-neutral-400">{company.notes}</p>}
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(company)} title="Edit company">
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(company)}
-                      title="Delete company"
-                      className="text-neutral-400 hover:text-red-600"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
+                  {canEdit && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(company)} title="Edit company">
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(company)}
+                        title="Delete company"
+                        className="text-neutral-400 hover:text-red-600"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <div>

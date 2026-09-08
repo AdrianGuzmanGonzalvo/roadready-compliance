@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useUIStore } from "@/store/ui-store";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
+import { useCanEdit } from "@/hooks/use-auth";
 
 interface DriverFiltersProps {
   filteredCount: number;
@@ -32,6 +33,7 @@ export function DriverFilters({ filteredCount, totalCount, onExportXlsx, onExpor
   const setWindowFilter = useUIStore((s) => s.setWindowFilter);
   const setAddDriverOpen = useUIStore((s) => s.setAddDriverOpen);
   const formFieldDefs = useFormFieldDefs();
+  const canEdit = useCanEdit();
 
   return (
     <div className="flex flex-col gap-3">
@@ -54,10 +56,12 @@ export function DriverFilters({ filteredCount, totalCount, onExportXlsx, onExpor
             <FileSpreadsheet className="size-4" />
             Excel
           </Button>
-          <Button size="sm" onClick={() => setAddDriverOpen(true)}>
-            <UserPlus className="size-4" />
-            Add Driver
-          </Button>
+          {canEdit && (
+            <Button size="sm" onClick={() => setAddDriverOpen(true)}>
+              <UserPlus className="size-4" />
+              Add Driver
+            </Button>
+          )}
         </div>
       </div>
 

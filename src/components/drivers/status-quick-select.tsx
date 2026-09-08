@@ -22,10 +22,12 @@ export function StatusQuickSelect({
   driverId,
   status,
   driverName,
+  disabled,
 }: {
   driverId: string;
   status: DriverStatusValue;
   driverName: string;
+  disabled?: boolean;
 }) {
   const updateDriver = useUpdateDriver();
 
@@ -42,7 +44,7 @@ export function StatusQuickSelect({
 
   return (
     <div onClick={(e) => e.stopPropagation()}>
-      <Select value={status} onValueChange={handleChange}>
+      <Select value={status} onValueChange={handleChange} disabled={disabled}>
         <SelectTrigger
           className={cn(
             "h-7 w-[130px] rounded-full border px-2.5 py-0 text-xs font-medium shadow-none",

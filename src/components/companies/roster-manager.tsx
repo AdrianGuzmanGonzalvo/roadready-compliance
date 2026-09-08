@@ -6,11 +6,13 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCreateRoster, useDeleteRoster } from "@/hooks/use-companies";
+import { useCanEdit } from "@/hooks/use-auth";
 import type { RosterDTO } from "@/types/company";
 
 export function RosterManager({ companyId, rosters }: { companyId: string; rosters: RosterDTO[] }) {
   const createRoster = useCreateRoster();
   const deleteRoster = useDeleteRoster();
+  const canEdit = useCanEdit();
   const [adding, setAdding] = React.useState(false);
   const [name, setName] = React.useState("");
 
@@ -44,17 +46,19 @@ export function RosterManager({ companyId, rosters }: { companyId: string; roste
           className="inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-0.5 text-xs text-neutral-700"
         >
           {r.name}
-          <button
-            onClick={() => handleRemove(r.id, r.name)}
-            className="text-neutral-400 hover:text-red-600"
-            title="Remove roster"
-          >
-            <X className="size-3" />
-          </button>
+          {canEdit && (
+            <button
+              onClick={() => handleRemove(r.id, r.name)}
+              className="text-neutral-400 hover:text-red-600"
+              title="Remove roster"
+            >
+              <X className="size-3" />
+            </button>
+          )}
         </span>
       ))}
 
-      {adding ? (
+      {!canEdit ? null : adding ? (
         <span className="inline-flex items-center gap-1">
           <Input
             value={name}

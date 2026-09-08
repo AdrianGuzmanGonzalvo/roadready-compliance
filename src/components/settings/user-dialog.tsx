@@ -122,6 +122,7 @@ export function UserDialog({
               <SelectContent>
                 <SelectItem value="USER">User</SelectItem>
                 <SelectItem value="ADMIN">Admin</SelectItem>
+                <SelectItem value="DEMO">Demo (read-only)</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Users, Building2, UploadCloud, FileBarChart, FileText, Settings, ShieldCheck, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
+import { useCanEdit } from "@/hooks/use-auth";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -19,6 +20,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const setUploadOpen = useUIStore((s) => s.setUploadOpen);
+  const canEdit = useCanEdit();
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -55,13 +57,15 @@ export function Sidebar() {
           );
         })}
 
-        <button
-          onClick={() => setUploadOpen(true)}
-          className="w-full flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors"
-        >
-          <UploadCloud className="size-4" />
-          Upload Excel
-        </button>
+        {canEdit && (
+          <button
+            onClick={() => setUploadOpen(true)}
+            className="w-full flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors"
+          >
+            <UploadCloud className="size-4" />
+            Upload Excel
+          </button>
+        )}
       </nav>
 
       <div className="px-3 py-4 border-t border-neutral-100 space-y-1">

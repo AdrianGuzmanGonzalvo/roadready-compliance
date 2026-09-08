@@ -8,6 +8,7 @@ import { CompanyRosterFilter } from "@/components/layout/company-roster-filter";
 import { useUIStore } from "@/store/ui-store";
 import { useDrivers } from "@/hooks/use-drivers";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
+import { useCanEdit } from "@/hooks/use-auth";
 import { overallStatus } from "@/lib/compliance";
 import { filterByCompanyRoster } from "@/lib/scope";
 
@@ -17,6 +18,7 @@ export function TopBar() {
   const search = useUIStore((s) => s.search);
   const setSearch = useUIStore((s) => s.setSearch);
   const setUploadOpen = useUIStore((s) => s.setUploadOpen);
+  const canEdit = useCanEdit();
   const companyFilter = useUIStore((s) => s.companyFilter);
   const rosterFilter = useUIStore((s) => s.rosterFilter);
   const { data: drivers } = useDrivers();
@@ -55,10 +57,12 @@ export function TopBar() {
         </div>
       )}
 
-      <Button size="sm" onClick={() => setUploadOpen(true)}>
-        <UploadCloud className="size-4" />
-        Upload New Excel
-      </Button>
+      {canEdit && (
+        <Button size="sm" onClick={() => setUploadOpen(true)}>
+          <UploadCloud className="size-4" />
+          Upload New Excel
+        </Button>
+      )}
     </header>
   );
 }

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { del } from "@vercel/blob";
-import { getSessionUser } from "@/lib/auth";
+import { requireWriteAccess } from "@/lib/auth";
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string; docId: string }> }) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await requireWriteAccess();
+  if (user instanceof NextResponse) return user;
 
   const { id: driverId, docId } = await params;
   const document = await user.db.driverDocument.findUnique({ where: { id: docId } });

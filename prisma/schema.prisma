@@ -19,6 +19,7 @@ enum DriverStatus {
 enum Role {
   ADMIN
   USER
+  DEMO
 }
 
 enum TenantStatus {

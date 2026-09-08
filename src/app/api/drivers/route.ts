@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUser, requireWriteAccess } from "@/lib/auth";
 import { serializeDriver } from "@/lib/serialize";
 import { DRIVER_STATUSES } from "@/types/driver";
 
@@ -15,8 +15,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await requireWriteAccess();
+  if (user instanceof NextResponse) return user;
 
   const body = await req.json();
 

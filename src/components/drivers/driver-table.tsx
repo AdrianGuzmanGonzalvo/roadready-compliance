@@ -11,6 +11,7 @@ import { StatusQuickSelect } from "@/components/drivers/status-quick-select";
 import { useUIStore } from "@/store/ui-store";
 import { useDeleteDriver } from "@/hooks/use-drivers";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
+import { useCanEdit } from "@/hooks/use-auth";
 import { nextExpiringForm } from "@/lib/compliance";
 import type { DriverDTO } from "@/types/driver";
 
@@ -25,6 +26,7 @@ export function DriverTable({ drivers, selectedIds, onToggleOne, onToggleAll }: 
   const openDriver = useUIStore((s) => s.openDriver);
   const deleteDriver = useDeleteDriver();
   const formFieldDefs = useFormFieldDefs();
+  const canEdit = useCanEdit();
 
   const allSelected = drivers.length > 0 && drivers.every((d) => selectedIds.has(d.id));
   const someSelected = drivers.some((d) => selectedIds.has(d.id));
@@ -93,6 +95,7 @@ export function DriverTable({ drivers, selectedIds, onToggleOne, onToggleAll }: 
                   driverId={driver.id}
                   status={driver.status}
                   driverName={`${driver.firstName} ${driver.lastName}`}
+                  disabled={!canEdit}
                 />
               </TableCell>
               <TableCell className="text-neutral-500">{driver.position ?? "—"}</TableCell>
@@ -109,15 +112,17 @@ export function DriverTable({ drivers, selectedIds, onToggleOne, onToggleAll }: 
                 )}
               </TableCell>
               <TableCell>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => handleDelete(e, driver)}
-                  title="Delete driver"
-                  className="size-8 text-neutral-400 hover:text-red-600"
-                >
-                  <Trash2 className="size-4" />
-                </Button>
+                {canEdit && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => handleDelete(e, driver)}
+                    title="Delete driver"
+                    className="size-8 text-neutral-400 hover:text-red-600"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                )}
               </TableCell>
             </TableRow>
           );
