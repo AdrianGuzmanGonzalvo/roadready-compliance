@@ -177,3 +177,27 @@ model DriverDocument {
   size        Int
   uploadedAt  DateTime @default(now())
 }
+
+enum ReportScheduleFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+/// A recurring email delivery of a report. Evaluated once a day by the
+/// send-scheduled-reports cron (see src/app/api/cron/send-scheduled-reports)
+/// — day precision only, no time-of-day/timezone.
+model ReportSchedule {
+  id            String                  @id @default(uuid())
+  reportType    String                  @default("soon_to_expire")
+  recipients    String // comma-separated email addresses
+  frequency     ReportScheduleFrequency @default(DAILY)
+  dayOfWeek     Int? // 0 (Sunday) - 6 (Saturday); used when frequency = WEEKLY
+  dayOfMonth    Int? // 1-31; used when frequency = MONTHLY
+  companyFilter String? // null/"ALL" = every company
+  rosterFilter  String? // null/"ALL" = every roster
+  enabled       Boolean                 @default(true)
+  lastSentAt    DateTime?
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+}

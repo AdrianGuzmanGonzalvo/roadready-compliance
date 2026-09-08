@@ -4,6 +4,7 @@ import * as React from "react";
 import { Loader2, Download, FileSpreadsheet, Printer, Search, X } from "lucide-react";
 import { useDrivers } from "@/hooks/use-drivers";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
+import { useCurrentUser } from "@/hooks/use-auth";
 import { useUIStore } from "@/store/ui-store";
 import { getDueSoonEntries } from "@/lib/compliance";
 import { exportDueSoonToXlsx, exportDueSoonToCsv } from "@/lib/export";
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { ComplianceBadge, DriverStatusBadge } from "@/components/drivers/compliance-badge";
+import { ReportSchedulePanel } from "@/components/reports/report-schedule-panel";
 import { filterByCompanyRoster } from "@/lib/scope";
 import type { DriverStatusValue } from "@/types/driver";
 
@@ -21,6 +23,7 @@ const WIDE_WINDOW_DAYS = 3650; // fetch a broad window; days-remaining filters n
 
 export default function SoonToExpireReportPage() {
   const { data: drivers, isLoading, isError } = useDrivers();
+  const { data: currentUser } = useCurrentUser();
   const openDriver = useUIStore((s) => s.openDriver);
   const companyFilter = useUIStore((s) => s.companyFilter);
   const rosterFilter = useUIStore((s) => s.rosterFilter);
@@ -191,6 +194,12 @@ export default function SoonToExpireReportPage() {
           </span>
         </div>
       </div>
+
+      {currentUser?.role === "ADMIN" && (
+        <div className="print:hidden">
+          <ReportSchedulePanel />
+        </div>
+      )}
 
       {isLoading && (
         <div className="flex items-center gap-2 text-neutral-400 text-sm py-12 justify-center">
