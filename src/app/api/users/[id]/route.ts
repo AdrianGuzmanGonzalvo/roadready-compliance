@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { hashPassword, requireAdmin } from "@/lib/auth";
 import type { UserDTO, UserRole } from "@/types/user";
 
+const VALID_ROLES: UserRole[] = ["ADMIN", "USER", "DEMO"];
+
 function serializeUser(user: { id: string; username: string; role: string; createdAt: Date }): UserDTO {
   return { id: user.id, username: user.username, role: user.role as UserRole, createdAt: user.createdAt.toISOString() };
 }
@@ -37,7 +39,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 
   if ("role" in body) {
-    const role: UserRole = body.role === "ADMIN" ? "ADMIN" : "USER";
+    const role: UserRole = VALID_ROLES.includes(body.role) ? body.role : "USER";
     if (existing.role === "ADMIN" && role !== "ADMIN") {
       const adminCount = await admin.db.user.count({ where: { role: "ADMIN" } });
       if (adminCount <= 1) {

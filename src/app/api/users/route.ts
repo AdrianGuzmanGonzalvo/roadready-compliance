@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { hashPassword, requireAdmin } from "@/lib/auth";
 import type { UserDTO, UserRole } from "@/types/user";
 
+const VALID_ROLES: UserRole[] = ["ADMIN", "USER", "DEMO"];
+
 function serializeUser(user: { id: string; username: string; role: string; createdAt: Date }): UserDTO {
   return { id: user.id, username: user.username, role: user.role as UserRole, createdAt: user.createdAt.toISOString() };
 }
@@ -24,7 +26,7 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
   const username = typeof body?.username === "string" ? body.username.trim() : "";
   const password = typeof body?.password === "string" ? body.password : "";
-  const role: UserRole = body?.role === "ADMIN" ? "ADMIN" : "USER";
+  const role: UserRole = VALID_ROLES.includes(body?.role) ? body.role : "USER";
 
   if (!username || !password) {
     return NextResponse.json({ error: "Username and password are required" }, { status: 400 });
