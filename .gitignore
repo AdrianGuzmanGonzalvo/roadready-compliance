@@ -73,3 +73,5 @@ skills-lock.json
 Turso.txt
 *.token
 *token*.txt
+
+.env*
