@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, PDFOptionList } from "pdf-lib";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import JSZip from "jszip";
 import { getSessionUser } from "@/lib/auth";
-import { PDF_FORM_TEMPLATES, type PdfFormFillContext } from "@/lib/pdf-forms";
+import {
+  PACKAGE_FORM_CARRIER_FIELD,
+  PACKAGE_FORM_FILE,
+  buildPackageFormTextFields,
+  type PdfFormFillContext,
+} from "@/lib/pdf-forms";
 
 export const runtime = "nodejs";
 
@@ -20,6 +24,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const driver = await user.db.driver.findUnique({ where: { id }, include: { complianceForm: true } });
   if (!driver) return NextResponse.json({ error: "Driver not found" }, { status: 404 });
 
+  const company = driver.company ? await user.db.company.findUnique({ where: { name: driver.company } }) : null;
+
   const ctx: PdfFormFillContext = {
     driver: {
       lastName: driver.lastName,
@@ -29,45 +35,70 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       endorsements: driver.endorsements,
       restrictions: driver.restrictions,
       dob: driver.dob,
-      clientId: driver.clientId,
-      company: driver.company,
+      phone: driver.phone,
     },
+    companyName: driver.company,
+    companyContactName: company?.contactName ?? null,
+    companyContactPhone: company?.contactPhone ?? null,
     licenseExp: driver.complianceForm?.licenseExp ?? null,
   };
 
-  const zip = new JSZip();
-  const namePart = sanitizeFilenamePart(`${driver.lastName}_${driver.firstName}`);
+  const templatePath = path.join(process.cwd(), "public", "pdf-templates", PACKAGE_FORM_FILE);
+  const bytes = await readFile(templatePath);
+  const pdfDoc = await PDFDocument.load(bytes, { ignoreEncryption: true });
+  const form = pdfDoc.getForm();
 
-  for (const template of PDF_FORM_TEMPLATES) {
-    const templatePath = path.join(process.cwd(), "public", "pdf-templates", template.file);
-    const bytes = await readFile(templatePath);
-    const pdfDoc = await PDFDocument.load(bytes, { ignoreEncryption: true });
-    const form = pdfDoc.getForm();
-
-    const values = template.fields(ctx);
-    for (const [fieldName, value] of Object.entries(values)) {
-      if (!value) continue;
-      try {
-        form.getTextField(fieldName).setText(value);
-      } catch (err) {
-        console.error(`[pdf-forms] Failed to set field "${fieldName}" on ${template.key}:`, err);
-      }
+  // The template ships with a filled sample driver ("Emile Damors") baked
+  // into every field's default value — not just the ones we have real data
+  // for. Clear every field first so none of that sample data (address,
+  // examiner info, road-test results, etc.) leaks into the output.
+  for (const field of form.getFields()) {
+    try {
+      if (field instanceof PDFTextField) field.setText(undefined);
+      else if (field instanceof PDFCheckBox) field.uncheck();
+      else if (field instanceof PDFRadioGroup) field.clear();
+      else if (field instanceof PDFDropdown) field.clear();
+      else if (field instanceof PDFOptionList) field.clear();
+    } catch (err) {
+      console.error(`[pdf-forms] Failed to clear field "${field.getName()}":`, err);
     }
-    // Deliberately not flattened: the remaining fields (accident history,
-    // road-test results, examiner certification) still need to be filled
-    // by hand, so the output must stay a live, fillable PDF.
-    form.updateFieldAppearances();
-
-    const filledBytes = await pdfDoc.save();
-    zip.file(`${template.key.toUpperCase()}_${namePart}.pdf`, filledBytes);
   }
 
-  const zipBytes = await zip.generateAsync({ type: "nodebuffer" });
+  const values = buildPackageFormTextFields(ctx);
+  for (const [fieldName, value] of Object.entries(values)) {
+    if (!value) continue;
+    try {
+      form.getTextField(fieldName).setText(value);
+    } catch (err) {
+      console.error(`[pdf-forms] Failed to set field "${fieldName}":`, err);
+    }
+  }
 
-  return new NextResponse(new Uint8Array(zipBytes), {
+  if (ctx.companyName) {
+    try {
+      const carrierField = form.getDropdown(PACKAGE_FORM_CARRIER_FIELD);
+      if (!carrierField.getOptions().includes(ctx.companyName)) {
+        carrierField.addOptions([ctx.companyName]);
+      }
+      carrierField.select(ctx.companyName);
+    } catch (err) {
+      console.error(`[pdf-forms] Failed to set carrier name:`, err);
+    }
+  }
+
+  // Deliberately not flattened: the remaining fields (accident history,
+  // road-test results, examiner/SBDI certification, vehicle assignment,
+  // driver home address) still need to be filled by hand, so the output
+  // must stay a live, fillable PDF.
+  form.updateFieldAppearances();
+
+  const filledBytes = await pdfDoc.save();
+  const namePart = sanitizeFilenamePart(`${driver.lastName}_${driver.firstName}`);
+
+  return new NextResponse(new Uint8Array(filledBytes), {
     headers: {
-      "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="19A_Forms_${namePart}.zip"`,
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="19A_Package_Form_${namePart}.pdf"`,
     },
   });
 }

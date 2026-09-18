@@ -1,12 +1,16 @@
-// Maps driver/compliance data onto the fillable fields of the four NY DMV
-// Article 19-A forms bundled under public/pdf-templates/. Only the
-// driver/carrier identity fields that RoadReady actually tracks are filled —
-// everything else on these forms (accident/conviction history, road-test
-// results, examiner certification, signatures) is generated at the time of
-// the real exam/interview and has no corresponding data in this app, so
-// those fields are left blank and interactive for the examiner to complete
-// by hand. Field names were reverse-engineered from each PDF's AcroForm
-// (see prisma schema comment history / Data/field-info/*.json for the
+// Maps driver/carrier data onto the fillable fields of the combined NY DMV
+// "19-A Package" PDF bundled at public/pdf-templates/19a-package-form.pdf
+// (DS-870, DS-872, DS-873, DS-875, DS-875Y, and the NYSED PT900 physical
+// performance test, in one file). Several identity fields (driver name,
+// DOB, license number/class/endorsements/restrictions, carrier name) are
+// wired as a single shared AcroForm field reused across every page in the
+// packet, so filling each one once populates it everywhere it appears.
+// Everything else on these forms (accident/conviction history, road-test
+// results, examiner/SBDI certification, vehicle assignment, driver home
+// address) is generated at the time of the real exam/interview/observation
+// and has no corresponding data in this app, so those fields are left
+// blank and interactive to complete by hand. Field names were
+// reverse-engineered from the PDF's AcroForm (see Data/field-info/ for the
 // full per-field dump) — they must match byte-for-byte or pdf-lib throws.
 
 export interface PdfFormFillContext {
@@ -18,9 +22,11 @@ export interface PdfFormFillContext {
     endorsements: string | null;
     restrictions: string | null;
     dob: Date | null;
-    clientId: string | null;
-    company: string | null;
+    phone: string | null;
   };
+  companyName: string | null;
+  companyContactName: string | null;
+  companyContactPhone: string | null;
   licenseExp: Date | null;
 }
 
@@ -31,77 +37,36 @@ function fmtDate(d: Date | null): string {
   return `${mm}/${dd}/${d.getUTCFullYear()}`;
 }
 
-export interface PdfFormTemplate {
-  key: string;
-  label: string;
-  /** Filename under public/pdf-templates/. */
-  file: string;
-  fields: (ctx: PdfFormFillContext) => Record<string, string>;
-}
+export const PACKAGE_FORM_FILE = "19a-package-form.pdf";
 
-export const PDF_FORM_TEMPLATES: PdfFormTemplate[] = [
-  {
-    key: "ds872",
-    label: "DS-872",
-    file: "ds872.pdf",
-    fields: (ctx) => ({
-      "Driver's Last Name": ctx.driver.lastName,
-      "Driver's First Name": ctx.driver.firstName,
-      "Date of Birth (Month/Day/Year)": fmtDate(ctx.driver.dob),
-      "License ID (Identification) Number from Driver License": ctx.driver.driversLicense ?? "",
-      "Class of Drivers License": ctx.driver.licenseClass ?? "",
-      Endorsements: ctx.driver.endorsements ?? "",
-      Restrictions: ctx.driver.restrictions ?? "",
-      "Expiration Date": fmtDate(ctx.licenseExp),
-      "Carrier/DBA Name": ctx.driver.company ?? "",
-    }),
-  },
-  {
-    key: "ds873",
-    label: "DS-873",
-    file: "ds873.pdf",
-    fields: (ctx) => ({
-      "Drivers Last Name": ctx.driver.lastName,
-      "Drivers First Name": ctx.driver.firstName,
-      "Date of Birth (Month/Day/Year)": fmtDate(ctx.driver.dob),
-      "Driver License ID (Identification) Number": ctx.driver.driversLicense ?? "",
-      "License Class": ctx.driver.licenseClass ?? "",
-      Endorsements: ctx.driver.endorsements ?? "",
-      Restrictions: ctx.driver.restrictions ?? "",
-      "Expiration Date": fmtDate(ctx.licenseExp),
-      "Carrier/DBA Name": ctx.driver.company ?? "",
-    }),
-  },
-  {
-    key: "ds875",
-    label: "DS-875",
-    file: "ds875.pdf",
-    fields: (ctx) => ({
-      "Drivers Last Name": ctx.driver.lastName,
-      "first name": ctx.driver.firstName,
-      "Driver License ID Number": ctx.driver.driversLicense ?? "",
-      "License Class": ctx.driver.licenseClass ?? "",
-      Endorsements: ctx.driver.endorsements ?? "",
-      Restrictions: ctx.driver.restrictions ?? "",
-      "Expiration Date": fmtDate(ctx.licenseExp),
-      "Date of Birth MonthDayYear": fmtDate(ctx.driver.dob),
-      "CarrierDBA Name": ctx.driver.company ?? "",
-    }),
-  },
-  {
-    key: "ds875y",
-    label: "DS-875Y",
-    file: "ds875y.pdf",
-    fields: (ctx) => ({
-      first: ctx.driver.firstName,
-      "last name": ctx.driver.lastName,
-      "class of license": ctx.driver.licenseClass ?? "",
-      "client id": ctx.driver.clientId ?? "",
-      DOB: fmtDate(ctx.driver.dob),
-      restrict: ctx.driver.restrictions ?? "",
-      endorse: ctx.driver.endorsements ?? "",
-      "exp date": fmtDate(ctx.licenseExp),
-      "employeer carrier": ctx.driver.company ?? "",
-    }),
-  },
-];
+/** Name of the driver/carrier name choice field, shared across every page of the packet. */
+export const PACKAGE_FORM_CARRIER_FIELD = "C_Name";
+
+/**
+ * Plain text-field values to fill, keyed by AcroForm field name. Note
+ * "Social Security Number" is deliberately omitted: Driver.ssn is stored
+ * masked (e.g. "***-**-1234"), so it isn't the real SSN and would be wrong
+ * to print on an official state form.
+ */
+export function buildPackageFormTextFields(ctx: PdfFormFillContext): Record<string, string> {
+  return {
+    // Shared driver identity fields (appear on DS-870/872/873/875/875Y).
+    DLN: ctx.driver.lastName,
+    DFN: ctx.driver.firstName,
+    DDOB: fmtDate(ctx.driver.dob),
+    DDLN: ctx.driver.driversLicense ?? "",
+    D_Class: ctx.driver.licenseClass ?? "",
+    D_Endorsements: ctx.driver.endorsements ?? "",
+    D_Restrictions: ctx.driver.restrictions ?? "",
+    D_Exp: fmtDate(ctx.licenseExp),
+    // PT900-only fields that restate identity in a different layout.
+    D_Fullname: `${ctx.driver.lastName}, ${ctx.driver.firstName}`,
+    Text9: [ctx.driver.licenseClass, ctx.driver.endorsements, ctx.driver.restrictions]
+      .filter((v) => v)
+      .join("/ "),
+    // DS-870-only fields.
+    "Telephone Number": ctx.driver.phone ?? "",
+    "Carrier Telephone Number": ctx.companyContactPhone ?? "",
+    "Name of Article 19-A Contact Person": ctx.companyContactName ?? "",
+  };
+}
