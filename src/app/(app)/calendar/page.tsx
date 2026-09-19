@@ -5,13 +5,10 @@ import { Loader2 } from "lucide-react";
 import { useDrivers } from "@/hooks/use-drivers";
 import { useUIStore } from "@/store/ui-store";
 import { filterByCompanyRoster } from "@/lib/scope";
-import { ComplianceHealthBanner } from "@/components/dashboard/compliance-health-banner";
-import { ExecutiveKpiCards } from "@/components/dashboard/executive-kpi-cards";
-import { FleetComplianceGauge } from "@/components/dashboard/fleet-compliance-gauge";
-import { ExpirationsTrendChart } from "@/components/dashboard/expirations-trend-chart";
-import { NeedsAttentionTable } from "@/components/dashboard/needs-attention-table";
+import { KpiCards } from "@/components/dashboard/kpi-cards";
+import { ExpirationMatrix } from "@/components/dashboard/expiration-matrix";
 
-export default function DashboardPage() {
+export default function CalendarPage() {
   const { data: drivers, isLoading, isError } = useDrivers();
   const companyFilter = useUIStore((s) => s.companyFilter);
   const rosterFilter = useUIStore((s) => s.rosterFilter);
@@ -26,6 +23,14 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-[1400px]">
+      <div>
+        <h1 className="text-xl font-semibold text-neutral-900">Calendar</h1>
+        <p className="text-sm text-neutral-500">
+          Article 19-A driver qualification record compliance overview.
+          {companyFilter !== "ALL" && <span className="text-neutral-400"> · Scoped to {scopeLabel}</span>}
+        </p>
+      </div>
+
       {isLoading && (
         <div className="flex items-center gap-2 text-neutral-400 text-sm py-12 justify-center">
           <Loader2 className="size-4 animate-spin" />
@@ -41,24 +46,8 @@ export default function DashboardPage() {
 
       {drivers && (
         <>
-          <ComplianceHealthBanner drivers={scoped} />
-
-          <div>
-            <h1 className="text-xl font-semibold text-neutral-900">Executive Dashboard</h1>
-            <p className="text-sm text-neutral-500">
-              Article 19-A driver qualification record compliance overview.
-              {companyFilter !== "ALL" && <span className="text-neutral-400"> · Scoped to {scopeLabel}</span>}
-            </p>
-          </div>
-
-          <ExecutiveKpiCards drivers={scoped} />
-
-          <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-4">
-            <FleetComplianceGauge drivers={scoped} />
-            <ExpirationsTrendChart drivers={scoped} />
-          </div>
-
-          <NeedsAttentionTable drivers={scoped} />
+          <KpiCards drivers={scoped} />
+          <ExpirationMatrix drivers={scoped} />
         </>
       )}
     </div>

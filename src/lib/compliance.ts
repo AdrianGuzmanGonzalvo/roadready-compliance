@@ -156,6 +156,116 @@ export function getDueSoonEntries(
   return entries.sort((a, b) => a.daysRemaining - b.daysRemaining);
 }
 
+export interface DriverStatusSummary {
+  compliant: number;
+  expiring60: number;
+  expiring30: number;
+  expired: number;
+  missing: number;
+  total: number;
+}
+
+/**
+ * Driver-level (not form-level) status rollup: each driver is counted once,
+ * under their single worst-case status. Used for fleet-wide health metrics,
+ * where "12 drivers have a form expiring soon" reads more usefully than
+ * "18 forms are expiring soon" (which can double-count a driver with
+ * several forms due around the same time).
+ */
+export function summarizeDriverStatuses(
+  drivers: DriverDTO[],
+  now: Date = new Date(),
+  formFieldDefs: readonly FormFieldDef[] = DEFAULT_FORM_FIELD_DEFS
+): DriverStatusSummary {
+  const summary: DriverStatusSummary = { compliant: 0, expiring60: 0, expiring30: 0, expired: 0, missing: 0, total: drivers.length };
+  for (const driver of drivers) {
+    const status = overallStatus(driver, now, formFieldDefs);
+    if (status === "expired") summary.expired++;
+    else if (status === "expiring_30") summary.expiring30++;
+    else if (status === "expiring_60") summary.expiring60++;
+    else if (status === "compliant") summary.compliant++;
+    else summary.missing++;
+  }
+  return summary;
+}
+
+export interface UrgentDriverEntry {
+  driverId: string;
+  lastName: string;
+  firstName: string;
+  company: string | null;
+  formKey: string;
+  formLabel: string;
+  date: string;
+  daysRemaining: number;
+  status: ComplianceStatus;
+}
+
+/**
+ * One row per driver — their single nearest-due form — sorted most urgent
+ * first. Unlike getDueSoonEntries (which lists every due form, so a driver
+ * with three forms due soon appears three times), this dedupes to the one
+ * form that actually needs attention next, for an at-a-glance "who do I
+ * need to deal with" list.
+ */
+export function getMostUrgentPerDriver(
+  drivers: DriverDTO[],
+  now: Date = new Date(),
+  formFieldDefs: readonly FormFieldDef[] = DEFAULT_FORM_FIELD_DEFS,
+  limit = 5
+): UrgentDriverEntry[] {
+  const entries: UrgentDriverEntry[] = [];
+  for (const driver of drivers) {
+    const next = nextExpiringForm(driver, formFieldDefs);
+    if (!next) continue;
+    const days = daysRemaining(next.date, now);
+    if (days === null) continue;
+    entries.push({
+      driverId: driver.id,
+      lastName: driver.lastName,
+      firstName: driver.firstName,
+      company: driver.company,
+      formKey: next.key,
+      formLabel: next.label,
+      date: next.date,
+      daysRemaining: days,
+      status: statusForDate(next.date, now),
+    });
+  }
+  return entries.sort((a, b) => a.daysRemaining - b.daysRemaining).slice(0, limit);
+}
+
+export interface MonthlyExpiryBucket {
+  label: string;
+  year: number;
+  month: number;
+  count: number;
+}
+
+/** Count of tracked form dates falling in each of the next `months` calendar months, starting this month. */
+export function getMonthlyExpiryTrend(
+  drivers: DriverDTO[],
+  months = 6,
+  now: Date = new Date(),
+  formFieldDefs: readonly FormFieldDef[] = DEFAULT_FORM_FIELD_DEFS
+): MonthlyExpiryBucket[] {
+  const buckets: MonthlyExpiryBucket[] = Array.from({ length: months }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    return { label: d.toLocaleDateString("en-US", { month: "short" }).toUpperCase(), year: d.getFullYear(), month: d.getMonth(), count: 0 };
+  });
+  for (const driver of drivers) {
+    for (const f of formFieldDefs) {
+      const value = getFormDate(driver, f);
+      if (!value) continue;
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) continue;
+      const bucket = buckets.find((b) => b.year === d.getFullYear() && b.month === d.getMonth());
+      if (bucket) bucket.count++;
+    }
+  }
+  return buckets;
+}
+
 /** Tally form-level (not driver-level) expiry counts across a set of drivers' compliance forms. */
 export function summarizeFormExpiries(
   sources: (FormSource | null)[],

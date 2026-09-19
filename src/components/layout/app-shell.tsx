@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Building2, FileBarChart, FileText, Settings } from "lucide-react";
+import { LayoutDashboard, CalendarDays, Users, Building2, FileBarChart, FileText, Settings } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/topbar";
 import { UploadDialog } from "@/components/upload/upload-dialog";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 
 const mobileNav = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/drivers?status=ALL", label: "Drivers", icon: Users, match: "/drivers" },
   { href: "/companies", label: "Companies", icon: Building2 },
   { href: "/reports", label: "Reports", icon: FileBarChart, match: "/reports" },
