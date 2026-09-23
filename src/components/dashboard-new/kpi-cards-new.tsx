@@ -72,9 +72,9 @@ export function KpiCardsNew({ drivers }: { drivers: DriverDTO[] }) {
         label="Total Drivers"
         value={drivers.length}
         sub={`${active.length} active · ${terminated.length} terminated`}
-        accent="bg-neutral-100 text-neutral-700"
+        accent="bg-blue-600 text-white"
         sparkCounts={[active.length, terminated.length]}
-        sparkColor="stroke-neutral-300"
+        sparkColor="stroke-blue-400"
         sparkLabel="Active vs. terminated"
       />
       <Kpi
@@ -82,7 +82,7 @@ export function KpiCardsNew({ drivers }: { drivers: DriverDTO[] }) {
         label="Overdue / Expired Forms"
         value={summary.expired}
         sub="Action required now"
-        accent="bg-red-50 text-red-600"
+        accent="bg-red-500 text-white"
         sparkCounts={expiredTrend}
         sparkColor="stroke-red-400"
         sparkLabel="Last 8 weeks"
@@ -93,7 +93,7 @@ export function KpiCardsNew({ drivers }: { drivers: DriverDTO[] }) {
         label="Expiring in 30 Days"
         value={summary.expiring30}
         sub="Action required soon"
-        accent="bg-amber-50 text-amber-600"
+        accent="bg-amber-400 text-amber-950"
         sparkCounts={expiring30Trend}
         sparkColor="stroke-amber-400"
         sparkLabel="Next 5 weeks"
@@ -104,7 +104,7 @@ export function KpiCardsNew({ drivers }: { drivers: DriverDTO[] }) {
         label="Expiring in 60 Days"
         value={summary.expiring60}
         sub="Upcoming"
-        accent="bg-orange-50 text-orange-600"
+        accent="bg-orange-500 text-white"
         sparkCounts={expiring60Trend}
         sparkColor="stroke-orange-400"
         sparkLabel="Next 8 weeks"
