@@ -36,17 +36,11 @@ function Kpi({
   active: boolean;
   onToggle: (filter: KpiStatusFilter) => void;
 }) {
-  const clickable = filterValue !== "ALL";
   return (
-    <button
-      type="button"
-      onClick={() => clickable && onToggle(filterValue)}
-      className={cn("text-left", !clickable && "cursor-default")}
-    >
+    <button type="button" onClick={() => onToggle(filterValue)} className="text-left">
       <Card
         className={cn(
-          "rounded-xl transition-colors",
-          clickable && "hover:border-neutral-300",
+          "rounded-xl transition-colors hover:border-neutral-300",
           active && "border-blue-400 ring-1 ring-blue-400"
         )}
       >
