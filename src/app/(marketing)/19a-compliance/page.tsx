@@ -120,9 +120,13 @@ export default function Article19APage() {
               <DemoRequestForm />
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Quick highlights */}
-          <div className="mt-16 grid grid-cols-2 gap-x-6 gap-y-8 sm:mt-20 lg:grid-cols-4 lg:max-w-none">
+      {/* Quick highlights — its own plain-background section, never under the hero's dark shapes */}
+      <section className="bg-white">
+        <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:py-14">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
             {HERO_HIGHLIGHTS.map(({ icon: Icon, title, body }) => (
               <div key={title}>
                 <div className="flex size-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
