@@ -24,7 +24,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const driver = await user.db.driver.findUnique({ where: { id }, include: { complianceForm: true } });
   if (!driver) return NextResponse.json({ error: "Driver not found" }, { status: 404 });
 
-  const company = driver.company ? await user.db.company.findUnique({ where: { name: driver.company } }) : null;
+  const [company, allCompanies] = await Promise.all([
+    driver.company ? user.db.company.findUnique({ where: { name: driver.company } }) : Promise.resolve(null),
+    user.db.company.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
+  ]);
 
   const ctx: PdfFormFillContext = {
     driver: {
@@ -74,16 +77,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     }
   }
 
-  if (ctx.companyName) {
-    try {
-      const carrierField = form.getDropdown(PACKAGE_FORM_CARRIER_FIELD);
-      if (!carrierField.getOptions().includes(ctx.companyName)) {
-        carrierField.addOptions([ctx.companyName]);
-      }
-      carrierField.select(ctx.companyName);
-    } catch (err) {
-      console.error(`[pdf-forms] Failed to set carrier name:`, err);
-    }
+  try {
+    const carrierField = form.getDropdown(PACKAGE_FORM_CARRIER_FIELD);
+    // Replace the template's pre-recorded carrier list with our own
+    // companies — the driver's own company always included, even if it
+    // isn't a formally registered Company record.
+    const companyNames = allCompanies.map((c) => c.name);
+    if (ctx.companyName && !companyNames.includes(ctx.companyName)) companyNames.push(ctx.companyName);
+    companyNames.sort((a, b) => a.localeCompare(b));
+    carrierField.setOptions(companyNames);
+    if (ctx.companyName) carrierField.select(ctx.companyName);
+  } catch (err) {
+    console.error(`[pdf-forms] Failed to set carrier options:`, err);
   }
 
   // Deliberately not flattened: the remaining fields (accident history,
