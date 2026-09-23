@@ -17,6 +17,13 @@ export function proxy(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Signed-out visitors to the root URL see the public marketing page
+  // instead of being bounced to /login — the Dashboard only lives at "/"
+  // once a session exists. The URL bar still shows "/".
+  if (req.nextUrl.pathname === "/") {
+    return NextResponse.rewrite(new URL("/19a-compliance", req.url));
+  }
+
   const loginUrl = new URL("/login", req.url);
   loginUrl.searchParams.set("next", req.nextUrl.pathname + req.nextUrl.search);
   return NextResponse.redirect(loginUrl);

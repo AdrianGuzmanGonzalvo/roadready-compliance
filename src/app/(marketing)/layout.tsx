@@ -28,7 +28,7 @@ gtag('config', '${GA_MEASUREMENT_ID}');`}
 
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/80 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3.5">
-          <Link href="/19a-compliance" className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2.5">
             <ShieldCheck className="size-7 text-blue-600" />
             <span className="leading-tight">
               <span className="block text-[15px] font-extrabold tracking-tight text-neutral-900">ROADREADY</span>

@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   title: "Article 19-A Compliance Software | RoadReady Compliance",
   description:
     "Track Article 19-A Driver Qualification Records in one place: driver rosters, the nine required forms and expiration status at a glance.",
-  alternates: { canonical: "/19a-compliance" },
+  // Served at "/" for signed-out visitors (see proxy.ts) as well as here directly — "/" is canonical.
+  alternates: { canonical: "/" },
 };
 
 const STEPS = [
