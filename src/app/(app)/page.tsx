@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Loader2 } from "lucide-react";
 import { useDrivers } from "@/hooks/use-drivers";
 import { useUIStore } from "@/store/ui-store";
-import { filterByCompanyRoster } from "@/lib/scope";
+import { filterByCompanyRoster, matchesSearch } from "@/lib/scope";
 import { KpiCards } from "@/components/dashboard/kpi-cards";
 import { ExpirationMatrix } from "@/components/dashboard/expiration-matrix";
 
@@ -12,10 +12,11 @@ export default function DashboardPage() {
   const { data: drivers, isLoading, isError } = useDrivers();
   const companyFilter = useUIStore((s) => s.companyFilter);
   const rosterFilter = useUIStore((s) => s.rosterFilter);
+  const search = useUIStore((s) => s.search);
 
   const scoped = useMemo(
-    () => (drivers ? filterByCompanyRoster(drivers, companyFilter, rosterFilter) : []),
-    [drivers, companyFilter, rosterFilter]
+    () => (drivers ? filterByCompanyRoster(drivers, companyFilter, rosterFilter).filter((d) => matchesSearch(d, search)) : []),
+    [drivers, companyFilter, rosterFilter, search]
   );
 
   const scopeLabel =

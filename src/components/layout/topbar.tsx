@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
 import { Search, UploadCloud, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,8 +12,6 @@ import { overallStatus } from "@/lib/compliance";
 import { filterByCompanyRoster } from "@/lib/scope";
 
 export function TopBar() {
-  const pathname = usePathname();
-  const router = useRouter();
   const search = useUIStore((s) => s.search);
   const setSearch = useUIStore((s) => s.setSearch);
   const setUploadOpen = useUIStore((s) => s.setUploadOpen);
@@ -29,18 +26,13 @@ export function TopBar() {
     (d) => d.status === "ACTIVE" && overallStatus(d, new Date(), formFieldDefs) === "expired"
   ).length;
 
-  function handleSearchChange(value: string) {
-    setSearch(value);
-    if (pathname !== "/drivers") router.push("/drivers?status=ALL");
-  }
-
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-neutral-200 bg-white/90 px-4 backdrop-blur md:px-6 print:hidden">
       <div className="relative flex-1 max-w-sm">
         <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
         <Input
           value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name, license #, or phone..."
           className="pl-8"
         />

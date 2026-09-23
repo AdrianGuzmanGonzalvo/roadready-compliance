@@ -14,8 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { statusForDate, getFormDate } from "@/lib/compliance";
 import { exportDriversToXlsx, exportDriversToCsv } from "@/lib/export";
-import { filterByCompanyRoster } from "@/lib/scope";
-import type { DriverDTO } from "@/types/driver";
+import { filterByCompanyRoster, matchesSearch } from "@/lib/scope";
 
 function SyncStatusFromUrl() {
   const searchParams = useSearchParams();
@@ -29,21 +28,6 @@ function SyncStatusFromUrl() {
   }, [searchParams, setStatusTab]);
 
   return null;
-}
-
-function matchesSearch(driver: DriverDTO, query: string): boolean {
-  if (!query.trim()) return true;
-  const q = query.trim().toLowerCase();
-  return (
-    driver.lastName.toLowerCase().includes(q) ||
-    driver.firstName.toLowerCase().includes(q) ||
-    `${driver.firstName} ${driver.lastName}`.toLowerCase().includes(q) ||
-    (driver.driversLicense?.toLowerCase().includes(q) ?? false) ||
-    (driver.clientId?.toLowerCase().includes(q) ?? false) ||
-    (driver.company?.toLowerCase().includes(q) ?? false) ||
-    (driver.roster?.toLowerCase().includes(q) ?? false) ||
-    (driver.phone?.toLowerCase().includes(q) ?? false)
-  );
 }
 
 export default function DriversPage() {
