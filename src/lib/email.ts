@@ -75,6 +75,33 @@ export function buildSoonToExpireEmailHtml(params: {
   </div>`;
 }
 
+/** Builds the auto-reply sent to a lead right after they submit the demo-request form. */
+export function buildDemoRequestConfirmationHtml(params: { name: string; contactEmail: string; contactPhone: string }): string {
+  const { name, contactEmail, contactPhone } = params;
+  const firstName = escapeHtml(name.trim().split(/\s+/)[0] || name);
+  return `<div style="font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;color:#1a1a1a;">
+    <div style="padding:20px 0;border-bottom:2px solid #171717;margin-bottom:16px;">
+      <p style="margin:0;font-size:12px;color:#999;text-transform:uppercase;letter-spacing:.05em;">RoadReady Compliance</p>
+      <h1 style="margin:4px 0 0;font-size:20px;">Thanks, ${firstName} — we've got your request</h1>
+    </div>
+    <p style="font-size:14px;color:#444;line-height:1.6;">
+      We received your demo request for RoadReady Compliance and will reach out within one business day to
+      schedule a walkthrough for your fleet.
+    </p>
+    <p style="font-size:14px;color:#444;line-height:1.6;">
+      In the meantime, if anything is urgent, reply to this email or reach us directly:
+    </p>
+    <p style="font-size:14px;color:#444;">
+      <a href="mailto:${contactEmail}" style="color:#171717;font-weight:600;">${contactEmail}</a>${
+        contactPhone ? ` &nbsp;·&nbsp; <a href="tel:${contactPhone}" style="color:#171717;font-weight:600;">${escapeHtml(contactPhone)}</a>` : ""
+      }
+    </p>
+    <p style="margin-top:24px;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:10px;">
+      You're receiving this because you requested a demo at roadready-compliance.vercel.app/19a-compliance.
+    </p>
+  </div>`;
+}
+
 export async function sendReportEmail(params: { to: string[]; subject: string; html: string }): Promise<void> {
   const resend = getResend();
   const from = process.env.RESEND_FROM_EMAIL ?? "RoadReady Compliance <onboarding@resend.dev>";

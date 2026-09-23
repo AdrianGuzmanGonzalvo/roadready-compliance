@@ -113,7 +113,11 @@ export function DemoRequestForm() {
         </p>
       ) : null}
 
-      <Button type="submit" disabled={status === "sending"} className="w-full sm:w-auto">
+      <Button
+        type="submit"
+        disabled={status === "sending"}
+        className="w-full bg-indigo-600 hover:bg-indigo-700 sm:w-auto"
+      >
         {status === "sending" ? (
           <>
             <Loader2 className="size-4 animate-spin" />

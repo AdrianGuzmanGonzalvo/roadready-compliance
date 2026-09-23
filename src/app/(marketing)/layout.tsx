@@ -26,10 +26,10 @@ gtag('config', '${GA_MEASUREMENT_ID}');`}
         </>
       ) : null}
 
-      <header className="border-b border-neutral-200">
+      <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/80 backdrop-blur">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4">
           <Link href="/19a-compliance" className="flex items-center gap-2 font-semibold">
-            <ShieldCheck className="size-5" />
+            <ShieldCheck className="size-5 text-indigo-600" />
             RoadReady Compliance
           </Link>
           <Link
@@ -43,8 +43,8 @@ gtag('config', '${GA_MEASUREMENT_ID}');`}
 
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t border-neutral-200">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-4 py-6 text-sm text-neutral-600 sm:flex-row sm:items-center sm:justify-between">
+      <footer className="border-t border-neutral-100">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-4 py-8 text-sm text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
           <span>RoadReady Compliance</span>
           <div className="flex items-center gap-4">
             <a className="underline-offset-4 hover:underline" href={`mailto:${CONTACT_EMAIL}`}>

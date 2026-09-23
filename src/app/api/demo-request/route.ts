@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { sendReportEmail } from "@/lib/email";
+import { sendReportEmail, buildDemoRequestConfirmationHtml } from "@/lib/email";
+import { CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/marketing";
 
 /**
  * Public demo-request endpoint for the marketing landing page.
@@ -76,6 +77,20 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("[demo-request] Failed to send:", error, "Lead received:", fields);
     return NextResponse.json({ error: "We could not send your request." }, { status: 502 });
+  }
+
+  // Best-effort auto-reply to the lead. The sales notification above already
+  // went through, so a failure here (e.g. RESEND_FROM_EMAIL still on Resend's
+  // sandbox sender, which can only deliver to the account owner) must not
+  // fail the request — it just means the lead doesn't get the confirmation.
+  try {
+    await sendReportEmail({
+      to: [fields.email],
+      subject: "We received your RoadReady Compliance demo request",
+      html: buildDemoRequestConfirmationHtml({ name: fields.name, contactEmail: CONTACT_EMAIL, contactPhone: CONTACT_PHONE }),
+    });
+  } catch (error) {
+    console.error("[demo-request] Confirmation email to lead failed (check RESEND_FROM_EMAIL is a verified domain):", error);
   }
 
   return NextResponse.json({ ok: true });
