@@ -27,24 +27,35 @@ gtag('config', '${GA_MEASUREMENT_ID}');`}
       ) : null}
 
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-white/80 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4">
-          <Link href="/19a-compliance" className="flex items-center gap-2 font-semibold">
-            <ShieldCheck className="size-5 text-indigo-600" />
-            RoadReady Compliance
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3.5">
+          <Link href="/19a-compliance" className="flex items-center gap-2.5">
+            <ShieldCheck className="size-7 text-blue-600" />
+            <span className="leading-tight">
+              <span className="block text-[15px] font-extrabold tracking-tight text-neutral-900">ROADREADY</span>
+              <span className="block text-[10px] font-semibold tracking-widest text-neutral-500">COMPLIANCE</span>
+            </span>
           </Link>
-          <Link
-            href="/login"
-            className="text-sm text-neutral-600 underline-offset-4 hover:text-neutral-900 hover:underline"
-          >
-            Customer sign in
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/login"
+              className="inline-flex h-9 items-center justify-center rounded-md border border-neutral-300 px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
+            >
+              Login
+            </Link>
+            <a
+              href="#request-demo"
+              className="inline-flex h-9 items-center justify-center rounded-md bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            >
+              Request a demo
+            </a>
+          </div>
         </div>
       </header>
 
       <main className="flex-1">{children}</main>
 
       <footer className="border-t border-neutral-100">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-4 py-8 text-sm text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-8 text-sm text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
           <span>RoadReady Compliance</span>
           <div className="flex items-center gap-4">
             <a className="underline-offset-4 hover:underline" href={`mailto:${CONTACT_EMAIL}`}>

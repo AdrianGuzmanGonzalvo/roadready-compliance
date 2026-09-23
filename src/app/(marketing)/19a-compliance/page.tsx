@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { CheckCircle2, FileSpreadsheet, FolderOpen, CalendarClock, ShieldCheck } from "lucide-react";
+import { CheckCircle2, FileSpreadsheet, FolderOpen, CalendarClock, Users, ShieldCheck, Mail } from "lucide-react";
 import { DemoRequestForm } from "@/components/marketing/demo-request-form";
-import { CAPABILITIES, CONTACT_EMAIL, CONTACT_PHONE, TRACKED_FORMS } from "@/lib/marketing";
+import { CAPABILITIES, TRACKED_FORMS } from "@/lib/marketing";
 
 export const metadata: Metadata = {
   title: "Article 19-A Compliance Software | RoadReady Compliance",
@@ -28,50 +28,109 @@ const STEPS = [
   },
 ];
 
+const HERO_HIGHLIGHTS = [
+  { icon: Users, title: "Driver rosters", body: "Every file, one place." },
+  { icon: ShieldCheck, title: "9 tracked forms", body: "MCSA-5876 through DS-875Y." },
+  { icon: CalendarClock, title: "Expiration alerts", body: "Expired and due-soon, at a glance." },
+  { icon: Mail, title: "Scheduled reports", body: "The due list, emailed on schedule." },
+];
+
 export default function Article19APage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-24 h-[420px]"
-          style={{ background: "radial-gradient(600px 300px at 50% 0%, rgba(79,70,229,0.07), transparent 70%)" }}
-        />
-        <div className="relative mx-auto w-full max-w-3xl px-4 py-20 text-center sm:py-28">
-          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
-            <ShieldCheck className="size-3.5" />
-            Article 19-A Driver Qualification Records
-          </span>
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
-            Keep every 19-A driver file in one place
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-neutral-600 text-pretty">
-            Driver rosters, the nine required compliance forms and every expiration date, together — so nothing
-            is found missing during an audit.
-          </p>
-          <div className="mt-8 flex flex-col items-center gap-3">
-            <a
-              href="#request-demo"
-              className="inline-flex h-12 items-center justify-center rounded-lg bg-indigo-600 px-8 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
-            >
-              Request a demo
-            </a>
-            <p className="text-sm text-neutral-500">
-              or write to{" "}
-              <a className="font-medium text-neutral-700 underline underline-offset-4" href={`mailto:${CONTACT_EMAIL}`}>
-                {CONTACT_EMAIL}
-              </a>
-              {CONTACT_PHONE ? (
-                <>
-                  {" "}
-                  ·{" "}
-                  <a className="font-medium text-neutral-700 underline underline-offset-4" href={`tel:${CONTACT_PHONE}`}>
-                    {CONTACT_PHONE}
-                  </a>
-                </>
-              ) : null}
-            </p>
+      <section className="relative isolate overflow-hidden bg-white">
+        {/* Diagonal navy/blue background, right side only */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 hidden lg:block">
+          <div
+            className="absolute inset-y-0 right-0 w-[62%]"
+            style={{
+              clipPath: "polygon(18% 0, 100% 0, 100% 100%, 0% 100%)",
+              background: "linear-gradient(160deg, #0B1330 0%, #142257 55%, #1E3A8A 100%)",
+            }}
+          />
+          <div
+            className="absolute inset-y-0 right-0 w-[62%] opacity-70"
+            style={{
+              clipPath: "polygon(46% 0, 100% 0, 100% 100%, 30% 100%)",
+              background: "linear-gradient(160deg, #1D4ED8 0%, #2563EB 100%)",
+            }}
+          />
+          <div
+            className="absolute right-6 top-10 size-40"
+            style={{
+              backgroundImage: "radial-gradient(circle, rgba(255,255,255,.35) 1px, transparent 1px)",
+              backgroundSize: "14px 14px",
+            }}
+          />
+          <div
+            className="absolute right-10 bottom-10 size-32"
+            style={{
+              backgroundImage: "radial-gradient(circle, rgba(255,255,255,.25) 1px, transparent 1px)",
+              backgroundSize: "14px 14px",
+            }}
+          />
+          <div
+            className="absolute left-6 bottom-6 size-32"
+            style={{
+              backgroundImage: "radial-gradient(circle, rgba(0,0,0,.08) 1px, transparent 1px)",
+              backgroundSize: "14px 14px",
+            }}
+          />
+        </div>
+
+        <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
+            {/* Copy */}
+            <div>
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-blue-700">
+                <ShieldCheck className="size-4" />
+                Article 19-A Driver Qualification Records
+              </span>
+              <h1 className="mt-4 text-4xl leading-[1.08] font-extrabold tracking-tight text-balance text-neutral-900 sm:text-5xl">
+                Simplify 19-A Compliance.
+                <br />
+                Reduce Risk.
+                <br />
+                <span className="text-blue-600">Stay RoadReady.</span>
+              </h1>
+              <p className="mt-5 max-w-md text-base text-neutral-600 text-pretty sm:text-lg">
+                Keep every driver&apos;s file, the nine required compliance forms and every expiration date in one
+                place — so nothing is found missing during an audit.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <a
+                  href="#request-demo"
+                  className="inline-flex h-12 items-center justify-center rounded-lg bg-blue-600 px-7 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+                >
+                  Request a demo
+                </a>
+                <a
+                  href="#how-it-works"
+                  className="inline-flex h-12 items-center justify-center rounded-lg border border-neutral-300 px-7 text-sm font-semibold text-neutral-800 transition-colors hover:bg-neutral-50"
+                >
+                  How it works
+                </a>
+              </div>
+            </div>
+
+            {/* Floating demo request card */}
+            <div id="request-demo" className="scroll-mt-20 lg:pl-4">
+              <DemoRequestForm />
+            </div>
+          </div>
+
+          {/* Quick highlights */}
+          <div className="mt-16 grid grid-cols-2 gap-x-6 gap-y-8 sm:mt-20 lg:grid-cols-4 lg:max-w-none">
+            {HERO_HIGHLIGHTS.map(({ icon: Icon, title, body }) => (
+              <div key={title}>
+                <div className="flex size-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <Icon className="size-5" />
+                </div>
+                <h3 className="mt-3 font-semibold text-neutral-900">{title}</h3>
+                <p className="mt-0.5 text-sm text-neutral-500">{body}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -92,16 +151,16 @@ export default function Article19APage() {
       </section>
 
       {/* How it works */}
-      <section className="mx-auto w-full max-w-4xl px-4 py-20">
+      <section id="how-it-works" className="mx-auto w-full max-w-4xl scroll-mt-16 px-4 py-20">
         <h2 className="text-center text-2xl font-semibold tracking-tight">How it works</h2>
         <div className="mt-12 grid gap-10 sm:grid-cols-3">
           {STEPS.map(({ icon: Icon, title, body }, i) => (
             <div key={title} className="flex flex-col items-center text-center sm:items-start sm:text-left">
               <div className="flex items-center gap-3">
-                <span className="flex size-8 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white">
+                <span className="flex size-8 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
                   {i + 1}
                 </span>
-                <Icon className="size-5 text-indigo-600" />
+                <Icon className="size-5 text-blue-600" />
               </div>
               <h3 className="mt-4 font-medium text-neutral-900">{title}</h3>
               <p className="mt-1.5 text-sm text-neutral-600">{body}</p>
@@ -117,7 +176,7 @@ export default function Article19APage() {
           <div className="mt-8 grid gap-x-10 gap-y-6 sm:grid-cols-2">
             {CAPABILITIES.map((c) => (
               <div key={c.title} className="flex gap-3">
-                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-indigo-600" />
+                <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-blue-600" />
                 <div>
                   <h3 className="font-medium text-neutral-900">{c.title}</h3>
                   <p className="mt-0.5 text-sm text-neutral-600">{c.body}</p>
@@ -128,27 +187,6 @@ export default function Article19APage() {
           <p className="mt-10 text-sm text-neutral-500">
             Each company works in its own isolated database and signs in with its own company code.
           </p>
-        </div>
-      </section>
-
-      {/* Demo request */}
-      <section id="request-demo" className="mx-auto w-full max-w-5xl scroll-mt-16 px-4 py-20">
-        <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
-          <div className="flex flex-col gap-3 lg:pt-2">
-            <h2 className="text-2xl font-semibold tracking-tight">Request a demo</h2>
-            <p className="text-neutral-600">
-              Tell us about your fleet and we will walk you through how your 19-A records would look in
-              RoadReady Compliance.
-            </p>
-            <p className="text-sm text-neutral-500">
-              We use your details only to reply to this request. See our{" "}
-              <a className="underline underline-offset-4" href="/privacy">
-                privacy policy
-              </a>
-              .
-            </p>
-          </div>
-          <DemoRequestForm />
         </div>
       </section>
     </>
