@@ -1,10 +1,21 @@
 "use client";
 
 import { DriverScorecard } from "@/components/dashboard-new/driver-scorecard";
+import { DriverScorecardHierarchy } from "@/components/dashboard-new/driver-scorecard-hierarchy";
+import { DriverScorecardDataFocus } from "@/components/dashboard-new/driver-scorecard-data-focus";
+import { DriverScorecardCompact } from "@/components/dashboard-new/driver-scorecard-compact";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
+import type { ScorecardView } from "@/components/dashboard-new/scorecard-data";
 import type { DriverDTO } from "@/types/driver";
 
-export function DriverScorecardsGrid({ drivers }: { drivers: DriverDTO[] }) {
+const VIEW_COMPONENT = {
+  structured: DriverScorecard,
+  hierarchy: DriverScorecardHierarchy,
+  "data-focus": DriverScorecardDataFocus,
+  compact: DriverScorecardCompact,
+} as const;
+
+export function DriverScorecardsGrid({ drivers, view }: { drivers: DriverDTO[]; view: ScorecardView }) {
   const formFieldDefs = useFormFieldDefs();
   const active = drivers
     .filter((d) => d.status === "ACTIVE")
@@ -18,10 +29,12 @@ export function DriverScorecardsGrid({ drivers }: { drivers: DriverDTO[] }) {
     );
   }
 
+  const ScorecardComponent = VIEW_COMPONENT[view];
+
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
       {active.map((driver) => (
-        <DriverScorecard key={driver.id} driver={driver} formFieldDefs={formFieldDefs} />
+        <ScorecardComponent key={driver.id} driver={driver} formFieldDefs={formFieldDefs} />
       ))}
     </div>
   );

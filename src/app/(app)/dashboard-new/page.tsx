@@ -1,18 +1,44 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useDrivers } from "@/hooks/use-drivers";
 import { useUIStore } from "@/store/ui-store";
 import { filterByCompanyRoster, matchesSearch } from "@/lib/scope";
 import { KpiCardsNew } from "@/components/dashboard-new/kpi-cards-new";
 import { DriverScorecardsGrid } from "@/components/dashboard-new/driver-scorecards-grid";
+import { SCORECARD_VIEWS, type ScorecardView } from "@/components/dashboard-new/scorecard-data";
+import { cn } from "@/lib/utils";
+
+const VIEW_STORAGE_KEY = "dashboard-new-scorecard-view";
 
 export default function DashboardNewPage() {
   const { data: drivers, isLoading, isError } = useDrivers();
   const companyFilter = useUIStore((s) => s.companyFilter);
   const rosterFilter = useUIStore((s) => s.rosterFilter);
   const search = useUIStore((s) => s.search);
+  const [view, setView] = useState<ScorecardView>("structured");
+
+  useEffect(() => {
+    // Hydrates a client-only preference after mount, deliberately — reading
+    // localStorage during render would desync from the server-rendered HTML.
+    try {
+      const stored = localStorage.getItem(VIEW_STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (stored && SCORECARD_VIEWS.some((v) => v.value === stored)) setView(stored as ScorecardView);
+    } catch {
+      // ignore — falls back to the default view
+    }
+  }, []);
+
+  function handleViewChange(next: ScorecardView) {
+    setView(next);
+    try {
+      localStorage.setItem(VIEW_STORAGE_KEY, next);
+    } catch {
+      // per-browser convenience only — fine if it doesn't persist
+    }
+  }
 
   const scoped = useMemo(
     () => (drivers ? filterByCompanyRoster(drivers, companyFilter, rosterFilter).filter((d) => matchesSearch(d, search)) : []),
@@ -49,12 +75,31 @@ export default function DashboardNewPage() {
         <>
           <KpiCardsNew drivers={scoped} />
 
-          <div>
-            <h2 className="text-base font-semibold text-neutral-900">Driver Compliance Scorecards</h2>
-            <p className="text-xs text-neutral-400">Click a card to view or update a driver&apos;s compliance dates.</p>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-neutral-900">Driver Compliance Scorecards</h2>
+              <p className="text-xs text-neutral-400">Click a card to view or update a driver&apos;s compliance dates.</p>
+            </div>
+
+            <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-50 p-1" role="tablist" aria-label="Scorecard view">
+              {SCORECARD_VIEWS.map((v) => (
+                <button
+                  key={v.value}
+                  role="tab"
+                  aria-selected={view === v.value}
+                  onClick={() => handleViewChange(v.value)}
+                  className={cn(
+                    "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+                    view === v.value ? "bg-white text-blue-600 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
+                  )}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <DriverScorecardsGrid drivers={scoped} />
+          <DriverScorecardsGrid drivers={scoped} view={view} />
         </>
       )}
     </div>

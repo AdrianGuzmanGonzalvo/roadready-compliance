@@ -4,69 +4,21 @@ import { format } from "date-fns";
 import { CheckCircle2, AlertTriangle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { computeDriverScore, getFormDate, statusForDate, daysRemaining, nextExpiringForm, STATUS_CONFIG } from "@/lib/compliance";
+import { STATUS_CONFIG } from "@/lib/compliance";
 import { useUIStore } from "@/store/ui-store";
+import { buildScorecardData, STATUS_TEXT_COLOR, STATUS_BADGE_CLASS, STATUS_SOLID_CLASS, RING_BLUE } from "@/components/dashboard-new/scorecard-data";
 import type { FormFieldDef, DriverDTO } from "@/types/driver";
 
-const RING_BLUE = "#2563EB";
 const RADIUS = 24;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-const STATUS_TEXT_COLOR: Record<string, string> = {
-  expired: "text-red-600",
-  expiring_30: "text-amber-600",
-  expiring_60: "text-orange-600",
-  compliant: "text-emerald-600",
-  missing: "text-neutral-500",
-};
-
-const STATUS_BADGE_CLASS: Record<string, string> = {
-  expired: "bg-red-500",
-  expiring_30: "bg-amber-500",
-  expiring_60: "bg-orange-500",
-  compliant: "bg-emerald-500",
-  missing: "bg-neutral-400",
-};
-
-/** Saturated fill for the per-form grid cells — reuses STATUS_CONFIG's semantic color as the background. */
-const CELL_CLASS: Record<string, string> = {
-  expired: "bg-red-500 text-white",
-  expiring_30: "bg-amber-400 text-amber-950",
-  expiring_60: "bg-orange-500 text-white",
-  compliant: "bg-emerald-500 text-white",
-  missing: "bg-neutral-200 text-neutral-600",
-};
-
+/** View 1 — "Structured": header (ring + identity) → alerts → form grid → footer. */
 export function DriverScorecard({ driver, formFieldDefs }: { driver: DriverDTO; formFieldDefs: FormFieldDef[] }) {
   const openDriver = useUIStore((s) => s.openDriver);
-  const now = new Date();
-  const score = computeDriverScore(driver, now, formFieldDefs);
-  const next = nextExpiringForm(driver, formFieldDefs);
-  const nextDays = next ? daysRemaining(next.date, now) : null;
-  const expiredCount = formFieldDefs.filter((f) => statusForDate(getFormDate(driver, f), now) === "expired").length;
-
-  let actionText: string;
-  if (!next || nextDays === null) {
-    actionText = "No records on file";
-  } else if (nextDays < 0) {
-    actionText = expiredCount > 1 ? `URGENT: ${expiredCount} forms overdue` : `Renew ${next.label} now`;
-  } else {
-    actionText = `Renew ${next.label} in ${nextDays}d`;
-  }
+  const { score, actionText, nextDays, urgent, cells } = buildScorecardData(driver, formFieldDefs);
 
   const offset = CIRCUMFERENCE - (score.pct / 100) * CIRCUMFERENCE;
   const StatusIcon = score.status === "compliant" || score.status === "expiring_60" ? CheckCircle2 : AlertTriangle;
-
-  // The driver's own most urgent forms (expired or due within 30 days), for the alert strip.
-  const urgent = formFieldDefs
-    .map((f) => {
-      const value = getFormDate(driver, f);
-      const days = daysRemaining(value, now);
-      return { label: f.label, days };
-    })
-    .filter((f): f is { label: string; days: number } => f.days !== null && f.days <= 30)
-    .sort((a, b) => a.days - b.days)
-    .slice(0, 2);
 
   return (
     <Card
@@ -118,7 +70,7 @@ export function DriverScorecard({ driver, formFieldDefs }: { driver: DriverDTO; 
       {/* Urgent alerts, full width */}
       {urgent.length > 0 && (
         <div className="mt-3 flex flex-col gap-1.5">
-          {urgent.map((u) => (
+          {urgent.slice(0, 2).map((u) => (
             <div
               key={u.label}
               className={cn(
@@ -136,21 +88,16 @@ export function DriverScorecard({ driver, formFieldDefs }: { driver: DriverDTO; 
 
       {/* Per-form status grid, full width */}
       <div className="mt-3 grid grid-cols-5 gap-1">
-        {formFieldDefs.map((f) => {
-          const value = getFormDate(driver, f);
-          const status = statusForDate(value, now);
-          const days = daysRemaining(value, now);
-          return (
-            <div
-              key={f.key}
-              title={`${f.label}${value ? ` — ${format(new Date(value), "MMM d, yyyy")}` : " — no date on file"}`}
-              className={cn("rounded px-0.5 py-1.5 flex flex-col items-center justify-center gap-0.5 text-center", CELL_CLASS[status])}
-            >
-              <span className="text-[8px] font-bold leading-[1.05] line-clamp-2 break-words">{f.label}</span>
-              <span className="text-[8.5px] font-medium leading-none opacity-90">{days === null ? "—" : `${days}d`}</span>
-            </div>
-          );
-        })}
+        {cells.map((c) => (
+          <div
+            key={c.key}
+            title={`${c.label}${c.date ? ` — ${format(new Date(c.date), "MMM d, yyyy")}` : " — no date on file"}`}
+            className={cn("rounded px-0.5 py-1.5 flex flex-col items-center justify-center gap-0.5 text-center", STATUS_SOLID_CLASS[c.status])}
+          >
+            <span className="text-[8px] font-bold leading-[1.05] line-clamp-2 break-words">{c.label}</span>
+            <span className="text-[8.5px] font-medium leading-none opacity-90">{c.days === null ? "—" : `${c.days}d`}</span>
+          </div>
+        ))}
       </div>
 
       {/* Footer: next action + audit readiness, side by side so neither wraps */}
