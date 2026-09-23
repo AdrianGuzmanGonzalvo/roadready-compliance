@@ -59,11 +59,15 @@ export function buildPackageFormTextFields(ctx: PdfFormFillContext): Record<stri
     D_Endorsements: ctx.driver.endorsements ?? "",
     D_Restrictions: ctx.driver.restrictions ?? "",
     D_Exp: fmtDate(ctx.licenseExp),
-    // PT900-only fields that restate identity in a different layout.
+    // PT900-only fields that restate identity in a different layout. Both
+    // also carry a "Calculate" script in the PDF itself (DLN+", "+DFN, and
+    // D_Class+"/"+D_Endorsements+"/"+D_Restrictions) that Acrobat re-runs on
+    // open — formatted to match exactly, so that recalculation is a no-op
+    // instead of silently reformatting what we filled in.
     D_Fullname: `${ctx.driver.lastName}, ${ctx.driver.firstName}`,
     Text9: [ctx.driver.licenseClass, ctx.driver.endorsements, ctx.driver.restrictions]
       .filter((v) => v)
-      .join("/ "),
+      .join("/"),
     // DS-870-only fields.
     "Telephone Number": ctx.driver.phone ?? "",
     "Carrier Telephone Number": ctx.companyContactPhone ?? "",

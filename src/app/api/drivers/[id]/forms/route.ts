@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PDFDocument, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, PDFOptionList } from "pdf-lib";
+import { PDFDocument, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, PDFOptionList, PDFName } from "pdf-lib";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { getSessionUser } from "@/lib/auth";
@@ -89,6 +89,18 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     if (ctx.companyName) carrierField.select(ctx.companyName);
   } catch (err) {
     console.error(`[pdf-forms] Failed to set carrier options:`, err);
+  }
+
+  // The template ships a "Calculate" JavaScript action on Federal ID Number
+  // that derives it (and 19-A Business ID) by splitting the Carrier Name
+  // dropdown's value on "+" (its original options encoded both IDs as
+  // "<fedId>+<19aId>"). Now that the dropdown holds real company names with
+  // no "+", that script would overwrite whatever the examiner types with
+  // garbage every time Acrobat recalculates the form — so it's removed.
+  try {
+    form.getTextField("C_Fed").acroField.dict.delete(PDFName.of("AA"));
+  } catch (err) {
+    console.error(`[pdf-forms] Failed to remove C_Fed's calculate script:`, err);
   }
 
   // Deliberately not flattened: the remaining fields (accident history,
