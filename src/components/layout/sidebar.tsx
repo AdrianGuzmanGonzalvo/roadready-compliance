@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, Building2, UploadCloud, FileBarChart, FileText, Settings, ShieldCheck, LogOut } from "lucide-react";
+import { LayoutDashboard, LayoutGrid, Users, Building2, UploadCloud, FileBarChart, FileText, Settings, ShieldCheck, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { useCanEdit } from "@/hooks/use-auth";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard-new", label: "Dashboard (New)", icon: LayoutGrid },
   { href: "/drivers?status=ALL", label: "Drivers", icon: Users, match: "/drivers" },
   { href: "/companies", label: "Companies", icon: Building2 },
   { href: "/reports", label: "Reports", icon: FileBarChart, match: "/reports" },

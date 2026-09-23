@@ -156,6 +156,72 @@ export function getDueSoonEntries(
   return entries.sort((a, b) => a.daysRemaining - b.daysRemaining);
 }
 
+export interface DriverScore {
+  /** % of the driver's forms-with-a-date-set that are currently "compliant". */
+  pct: number;
+  trackedCount: number;
+  totalCount: number;
+  /** Worst-case status across all tracked forms — drives the scorecard's color. */
+  status: ComplianceStatus;
+  /** Every tracked form is present and compliant. */
+  auditReady: boolean;
+}
+
+/** Per-driver compliance completeness score, for the scorecard grid's ring gauge. */
+export function computeDriverScore(
+  driver: FormSource,
+  now: Date = new Date(),
+  formFieldDefs: readonly FormFieldDef[] = DEFAULT_FORM_FIELD_DEFS
+): DriverScore {
+  let tracked = 0;
+  let compliant = 0;
+  for (const f of formFieldDefs) {
+    const value = getFormDate(driver, f);
+    if (!value) continue;
+    tracked++;
+    if (statusForDate(value, now) === "compliant") compliant++;
+  }
+  const status = overallStatus(driver, now, formFieldDefs);
+  return {
+    pct: tracked > 0 ? Math.round((compliant / tracked) * 100) : 0,
+    trackedCount: tracked,
+    totalCount: formFieldDefs.length,
+    status,
+    auditReady: tracked === formFieldDefs.length && status === "compliant",
+  };
+}
+
+/**
+ * Buckets every tracked form date across `drivers` whose days-remaining falls
+ * in `[rangeStartDays, rangeEndDays)` into `buckets` equal-width periods, for
+ * small trend sparklines. Negative range values look backward (overdue
+ * forms), positive ones forward (upcoming forms) — both are real dates
+ * already in the data, not invented history.
+ */
+export function bucketExpiringCounts(
+  drivers: DriverDTO[],
+  now: Date,
+  formFieldDefs: readonly FormFieldDef[],
+  rangeStartDays: number,
+  rangeEndDays: number,
+  buckets: number
+): number[] {
+  const counts = new Array(buckets).fill(0) as number[];
+  const span = rangeEndDays - rangeStartDays;
+  if (span <= 0) return counts;
+  for (const driver of drivers) {
+    for (const f of formFieldDefs) {
+      const value = getFormDate(driver, f);
+      if (!value) continue;
+      const days = daysRemaining(value, now);
+      if (days === null || days < rangeStartDays || days >= rangeEndDays) continue;
+      const idx = Math.min(buckets - 1, Math.floor(((days - rangeStartDays) / span) * buckets));
+      counts[idx]++;
+    }
+  }
+  return counts;
+}
+
 /** Tally form-level (not driver-level) expiry counts across a set of drivers' compliance forms. */
 export function summarizeFormExpiries(
   sources: (FormSource | null)[],
