@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { useDrivers } from "@/hooks/use-drivers";
 import { useUIStore } from "@/store/ui-store";
-import { filterByCompanyRoster, matchesSearch } from "@/lib/scope";
+import { useFormFieldDefs } from "@/hooks/use-form-labels";
+import { filterByCompanyRoster, matchesSearch, matchesKpiStatusFilter } from "@/lib/scope";
 import { KpiCardsNew } from "@/components/dashboard-new/kpi-cards-new";
 import { DriverScorecardsGrid } from "@/components/dashboard-new/driver-scorecards-grid";
 import { SCORECARD_VIEWS, type ScorecardView } from "@/components/dashboard-new/scorecard-data";
@@ -12,11 +13,20 @@ import { cn } from "@/lib/utils";
 
 const VIEW_STORAGE_KEY = "dashboard-new-scorecard-view";
 
+const KPI_FILTER_LABEL: Record<string, string> = {
+  expired: "Overdue / Expired Forms",
+  expiring_30: "Expiring in 30 Days",
+  expiring_60: "Expiring in 60 Days",
+};
+
 export default function DashboardNewPage() {
   const { data: drivers, isLoading, isError } = useDrivers();
   const companyFilter = useUIStore((s) => s.companyFilter);
   const rosterFilter = useUIStore((s) => s.rosterFilter);
   const search = useUIStore((s) => s.search);
+  const kpiStatusFilter = useUIStore((s) => s.kpiStatusFilter);
+  const setKpiStatusFilter = useUIStore((s) => s.setKpiStatusFilter);
+  const formFieldDefs = useFormFieldDefs();
   const [view, setView] = useState<ScorecardView>("structured");
 
   useEffect(() => {
@@ -43,6 +53,11 @@ export default function DashboardNewPage() {
   const scoped = useMemo(
     () => (drivers ? filterByCompanyRoster(drivers, companyFilter, rosterFilter).filter((d) => matchesSearch(d, search)) : []),
     [drivers, companyFilter, rosterFilter, search]
+  );
+
+  const filtered = useMemo(
+    () => scoped.filter((d) => matchesKpiStatusFilter(d, kpiStatusFilter, formFieldDefs)),
+    [scoped, kpiStatusFilter, formFieldDefs]
   );
 
   const scopeLabel =
@@ -75,6 +90,22 @@ export default function DashboardNewPage() {
         <>
           <KpiCardsNew drivers={scoped} />
 
+          {kpiStatusFilter !== "ALL" && (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 pl-3 pr-1.5 py-1 text-xs font-medium text-blue-700">
+                Filtered: {KPI_FILTER_LABEL[kpiStatusFilter]}
+                <button
+                  type="button"
+                  onClick={() => setKpiStatusFilter("ALL")}
+                  className="flex size-4 items-center justify-center rounded-full hover:bg-blue-100"
+                  aria-label="Clear filter"
+                >
+                  <X className="size-3" />
+                </button>
+              </span>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-base font-semibold text-neutral-900">Driver Compliance Scorecards</h2>
@@ -99,7 +130,7 @@ export default function DashboardNewPage() {
             </div>
           </div>
 
-          <DriverScorecardsGrid drivers={scoped} view={view} />
+          <DriverScorecardsGrid drivers={filtered} view={view} />
         </>
       )}
     </div>

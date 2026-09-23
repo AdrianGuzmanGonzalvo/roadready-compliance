@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 export type StatusTab = "ACTIVE" | "INACTIVE" | "TERMINATED" | "ALL";
 export type WindowFilter = "ALL" | "expired" | "30" | "60";
+export type KpiStatusFilter = "ALL" | "expired" | "expiring_30" | "expiring_60";
 
 interface UIState {
   search: string;
@@ -21,6 +22,10 @@ interface UIState {
 
   windowFilter: WindowFilter;
   setWindowFilter: (w: WindowFilter) => void;
+
+  /** Set by clicking a KPI card on Dashboard / Dashboard (New); narrows the list below it. Click the active one again to clear. */
+  kpiStatusFilter: KpiStatusFilter;
+  setKpiStatusFilter: (f: KpiStatusFilter) => void;
 
   selectedDriverId: string | null;
   openDriver: (id: string) => void;
@@ -50,6 +55,9 @@ export const useUIStore = create<UIState>((set) => ({
 
   windowFilter: "ALL",
   setWindowFilter: (windowFilter) => set({ windowFilter }),
+
+  kpiStatusFilter: "ALL",
+  setKpiStatusFilter: (kpiStatusFilter) => set({ kpiStatusFilter }),
 
   selectedDriverId: null,
   openDriver: (id) => set({ selectedDriverId: id }),

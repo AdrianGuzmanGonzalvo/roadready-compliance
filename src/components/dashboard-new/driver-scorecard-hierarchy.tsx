@@ -9,7 +9,8 @@ import { useUIStore } from "@/store/ui-store";
 import {
   buildScorecardData,
   STATUS_TEXT_COLOR,
-  STATUS_SOFT_CLASS,
+  STATUS_BADGE_CLASS,
+  STATUS_SOLID_CLASS,
   RING_BLUE,
   initials,
 } from "@/components/dashboard-new/scorecard-data";
@@ -67,7 +68,7 @@ export function DriverScorecardHierarchy({ driver, formFieldDefs }: { driver: Dr
         </div>
       </div>
 
-      <div className={cn("mt-3 rounded-md py-1.5 text-center text-[11px] font-bold uppercase tracking-wide", STATUS_SOFT_CLASS[score.status])}>
+      <div className={cn("mt-3 rounded-md py-1.5 text-center text-[11px] font-bold uppercase tracking-wide text-white", STATUS_BADGE_CLASS[score.status])}>
         {STATUS_CONFIG[score.status].label}
       </div>
 
@@ -103,10 +104,10 @@ export function DriverScorecardHierarchy({ driver, formFieldDefs }: { driver: Dr
             <div
               key={c.key}
               title={`${c.label}${c.date ? ` — ${format(new Date(c.date), "MMM d, yyyy")}` : " — no date on file"}`}
-              className={cn("rounded-lg px-0.5 py-1.5 flex flex-col items-center justify-center gap-0.5 text-center", STATUS_SOFT_CLASS[c.status])}
+              className={cn("rounded-lg px-0.5 py-1.5 flex flex-col items-center justify-center gap-0.5 text-center", STATUS_SOLID_CLASS[c.status])}
             >
               <span className="text-[8px] font-bold leading-[1.05] line-clamp-2 break-words">{c.label}</span>
-              <span className="text-[8.5px] font-medium leading-none opacity-80">{c.days === null ? "—" : `${c.days}d`}</span>
+              <span className="text-[8.5px] font-medium leading-none opacity-90">{c.days === null ? "—" : `${c.days}d`}</span>
             </div>
           ))}
         </div>

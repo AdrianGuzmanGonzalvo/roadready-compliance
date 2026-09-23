@@ -8,8 +8,8 @@ import { useUIStore } from "@/store/ui-store";
 import { useCanEdit } from "@/hooks/use-auth";
 
 const navItems = [
+  { href: "/dashboard-new", label: "Dashboard", icon: LayoutGrid, badge: "NEW" },
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/dashboard-new", label: "Dashboard (New)", icon: LayoutGrid },
   { href: "/drivers?status=ALL", label: "Drivers", icon: Users, match: "/drivers" },
   { href: "/companies", label: "Companies", icon: Building2 },
   { href: "/reports", label: "Reports", icon: FileBarChart, match: "/reports" },
@@ -45,7 +45,7 @@ export function Sidebar() {
           const active = item.match ? pathname.startsWith(item.match) : pathname === item.href;
           return (
             <Link
-              key={item.label}
+              key={item.href}
               href={item.href}
               className={cn(
                 "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
@@ -54,6 +54,11 @@ export function Sidebar() {
             >
               <Icon className="size-4" />
               {item.label}
+              {item.badge && (
+                <span className="ml-auto rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+                  {item.badge}
+                </span>
+              )}
             </Link>
           );
         })}

@@ -1,4 +1,6 @@
-import type { DriverDTO } from "@/types/driver";
+import { getFormDate, statusForDate } from "@/lib/compliance";
+import type { KpiStatusFilter } from "@/store/ui-store";
+import type { DriverDTO, FormFieldDef } from "@/types/driver";
 
 /** Distinct, sorted company names present in the driver set. */
 export function getCompanyOptions(drivers: DriverDTO[]): string[] {
@@ -30,4 +32,19 @@ export function matchesSearch(driver: DriverDTO, query: string): boolean {
     (driver.roster?.toLowerCase().includes(q) ?? false) ||
     (driver.phone?.toLowerCase().includes(q) ?? false)
   );
+}
+
+/**
+ * Whether any of a driver's tracked forms currently has the given status —
+ * the predicate behind clicking a KPI card on Dashboard / Dashboard (New)
+ * to narrow the list below it. "ALL" matches everyone.
+ */
+export function matchesKpiStatusFilter(
+  driver: DriverDTO,
+  filter: KpiStatusFilter,
+  formFieldDefs: FormFieldDef[],
+  now: Date = new Date()
+): boolean {
+  if (filter === "ALL") return true;
+  return formFieldDefs.some((f) => statusForDate(getFormDate(driver, f), now) === filter);
 }

@@ -1,12 +1,13 @@
 "use client";
 
 import type { ElementType } from "react";
-import Link from "next/link";
 import { Users, AlertOctagon, Clock, CalendarClock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { summarizeFormExpiries, bucketExpiringCounts } from "@/lib/compliance";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
+import { useUIStore } from "@/store/ui-store";
+import type { KpiStatusFilter } from "@/store/ui-store";
 import { Sparkline } from "@/components/dashboard-new/sparkline";
 import type { DriverDTO } from "@/types/driver";
 
@@ -19,7 +20,9 @@ function Kpi({
   sparkCounts,
   sparkColor,
   sparkLabel,
-  href,
+  filterValue,
+  active,
+  onToggle,
 }: {
   icon: ElementType;
   label: string;
@@ -29,31 +32,47 @@ function Kpi({
   sparkCounts: number[];
   sparkColor: string;
   sparkLabel: string;
-  href?: string;
+  filterValue: KpiStatusFilter;
+  active: boolean;
+  onToggle: (filter: KpiStatusFilter) => void;
 }) {
-  const card = (
-    <Card className={cn("rounded-xl", href && "transition-colors hover:border-neutral-300")}>
-      <div className="p-5 flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-neutral-500">{label}</p>
-          <p className="mt-1.5 text-2xl font-semibold text-neutral-900">{value}</p>
-          {sub && <p className="mt-0.5 text-xs text-neutral-400">{sub}</p>}
+  const clickable = filterValue !== "ALL";
+  return (
+    <button
+      type="button"
+      onClick={() => clickable && onToggle(filterValue)}
+      className={cn("text-left", !clickable && "cursor-default")}
+    >
+      <Card
+        className={cn(
+          "rounded-xl transition-colors",
+          clickable && "hover:border-neutral-300",
+          active && "border-blue-400 ring-1 ring-blue-400"
+        )}
+      >
+        <div className="p-5 flex items-start justify-between">
+          <div>
+            <p className="text-sm font-medium text-neutral-500">{label}</p>
+            <p className="mt-1.5 text-2xl font-semibold text-neutral-900">{value}</p>
+            {sub && <p className="mt-0.5 text-xs text-neutral-400">{sub}</p>}
+          </div>
+          <div className={cn("flex size-9 items-center justify-center rounded-lg shrink-0", accent)}>
+            <Icon className="size-4.5" />
+          </div>
         </div>
-        <div className={cn("flex size-9 items-center justify-center rounded-lg shrink-0", accent)}>
-          <Icon className="size-4.5" />
+        <div className="flex items-end justify-between px-5 pb-4 -mt-1">
+          <span className="text-[10px] font-medium text-neutral-400">{sparkLabel}</span>
+          <Sparkline counts={sparkCounts} colorClass={sparkColor} />
         </div>
-      </div>
-      <div className="flex items-end justify-between px-5 pb-4 -mt-1">
-        <span className="text-[10px] font-medium text-neutral-400">{sparkLabel}</span>
-        <Sparkline counts={sparkCounts} colorClass={sparkColor} />
-      </div>
-    </Card>
+      </Card>
+    </button>
   );
-  return href ? <Link href={href}>{card}</Link> : card;
 }
 
 export function KpiCardsNew({ drivers }: { drivers: DriverDTO[] }) {
   const formFieldDefs = useFormFieldDefs();
+  const kpiStatusFilter = useUIStore((s) => s.kpiStatusFilter);
+  const setKpiStatusFilter = useUIStore((s) => s.setKpiStatusFilter);
   const active = drivers.filter((d) => d.status === "ACTIVE");
   const terminated = drivers.filter((d) => d.status === "TERMINATED");
   const now = new Date();
@@ -64,6 +83,10 @@ export function KpiCardsNew({ drivers }: { drivers: DriverDTO[] }) {
   const expiredTrend = bucketExpiringCounts(active, now, formFieldDefs, -56, 0, 8);
   const expiring30Trend = bucketExpiringCounts(active, now, formFieldDefs, 0, 30, 5);
   const expiring60Trend = bucketExpiringCounts(active, now, formFieldDefs, 0, 60, 6);
+
+  function toggle(filter: KpiStatusFilter) {
+    setKpiStatusFilter(kpiStatusFilter === filter ? "ALL" : filter);
+  }
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -76,6 +99,9 @@ export function KpiCardsNew({ drivers }: { drivers: DriverDTO[] }) {
         sparkCounts={[active.length, terminated.length]}
         sparkColor="stroke-blue-400"
         sparkLabel="Active vs. terminated"
+        filterValue="ALL"
+        active={kpiStatusFilter === "ALL"}
+        onToggle={() => setKpiStatusFilter("ALL")}
       />
       <Kpi
         icon={AlertOctagon}
@@ -86,7 +112,9 @@ export function KpiCardsNew({ drivers }: { drivers: DriverDTO[] }) {
         sparkCounts={expiredTrend}
         sparkColor="stroke-red-400"
         sparkLabel="Last 8 weeks"
-        href="/reports/soon-to-expire"
+        filterValue="expired"
+        active={kpiStatusFilter === "expired"}
+        onToggle={toggle}
       />
       <Kpi
         icon={Clock}
@@ -97,7 +125,9 @@ export function KpiCardsNew({ drivers }: { drivers: DriverDTO[] }) {
         sparkCounts={expiring30Trend}
         sparkColor="stroke-amber-400"
         sparkLabel="Next 5 weeks"
-        href="/reports/soon-to-expire"
+        filterValue="expiring_30"
+        active={kpiStatusFilter === "expiring_30"}
+        onToggle={toggle}
       />
       <Kpi
         icon={CalendarClock}
@@ -108,6 +138,9 @@ export function KpiCardsNew({ drivers }: { drivers: DriverDTO[] }) {
         sparkCounts={expiring60Trend}
         sparkColor="stroke-orange-400"
         sparkLabel="Next 8 weeks"
+        filterValue="expiring_60"
+        active={kpiStatusFilter === "expiring_60"}
+        onToggle={toggle}
       />
     </div>
   );
