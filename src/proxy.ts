@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySessionToken, SESSION_COOKIE } from "@/lib/auth";
 
 export const config = {
+  // Everything requires a session except the login flow and the public marketing pages
+  // (/19a-compliance, /privacy and the demo-request endpoint they post to).
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|login|robots.txt|sitemap.xml|api/auth/login|api/auth/tenants|api/cron).*)",
+    "/((?!_next/static|_next/image|favicon.ico|login|robots.txt|sitemap.xml|19a-compliance|privacy|api/demo-request|api/auth/login|api/auth/tenants|api/cron).*)",
   ],
 };
 
