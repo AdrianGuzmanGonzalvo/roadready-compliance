@@ -14,7 +14,7 @@ import { trackEvent } from "@/lib/analytics";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/";
+  const next = searchParams.get("next") || "/dashboard-new";
 
   const [codes, setCodes] = React.useState<string[]>([]);
   const [tenantsError, setTenantsError] = React.useState(false);

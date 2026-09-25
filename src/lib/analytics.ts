@@ -92,7 +92,7 @@ export interface AnalyticsEvents {
   driver_created: { status: DriverStatusValue; has_company: boolean; has_roster: boolean };
   driver_updated: { status_changed: boolean; form_dates_changed: number };
   driver_status_changed: { from: DriverStatusValue; to: DriverStatusValue };
-  driver_deleted: { location: "driver_drawer" | "driver_table" };
+  driver_deleted: { location: "driver_drawer" | "driver_table" | "driver_detail_page" };
   drivers_bulk_assigned: { count: number; company_set: boolean; roster_set: boolean };
   drivers_bulk_deleted: { count: number };
   document_uploaded: { file_type: "pdf" | "image" | "other"; size_kb: number; has_custom_label: boolean };

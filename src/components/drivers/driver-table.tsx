@@ -1,6 +1,7 @@
 "use client";
 
 import type { MouseEvent } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -8,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ComplianceBadge } from "@/components/drivers/compliance-badge";
 import { StatusQuickSelect } from "@/components/drivers/status-quick-select";
-import { useUIStore } from "@/store/ui-store";
 import { useDeleteDriver } from "@/hooks/use-drivers";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { useCanEdit } from "@/hooks/use-auth";
@@ -24,7 +24,7 @@ interface DriverTableProps {
 }
 
 export function DriverTable({ drivers, selectedIds, onToggleOne, onToggleAll }: DriverTableProps) {
-  const openDriver = useUIStore((s) => s.openDriver);
+  const router = useRouter();
   const deleteDriver = useDeleteDriver();
   const formFieldDefs = useFormFieldDefs();
   const canEdit = useCanEdit();
@@ -83,7 +83,7 @@ export function DriverTable({ drivers, selectedIds, onToggleOne, onToggleAll }: 
               className="cursor-pointer"
               onClick={() => {
                 trackEvent("driver_opened", { source: "driver_table" });
-                openDriver(driver.id);
+                router.push(`/drivers/${driver.id}`);
               }}
             >
               <TableCell>

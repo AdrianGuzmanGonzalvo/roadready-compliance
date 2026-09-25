@@ -3,6 +3,7 @@
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCompanies } from "@/hooks/use-companies";
+import { cn } from "@/lib/utils";
 
 const NONE = "__none__";
 
@@ -11,11 +12,13 @@ export function CompanyRosterFields({
   roster,
   onCompanyChange,
   onRosterChange,
+  showRoster = true,
 }: {
   company: string;
   roster: string;
   onCompanyChange: (company: string) => void;
   onRosterChange: (roster: string) => void;
+  showRoster?: boolean;
 }) {
   const { data: companies } = useCompanies();
 
@@ -35,7 +38,7 @@ export function CompanyRosterFields({
 
   return (
     <>
-      <div className="space-y-1.5">
+      <div className={cn("space-y-1.5", !showRoster && "col-span-2")}>
         <Label>Company</Label>
         <Select value={company || NONE} onValueChange={handleCompanyChange}>
           <SelectTrigger>
@@ -54,22 +57,24 @@ export function CompanyRosterFields({
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-1.5">
-        <Label>Roster</Label>
-        <Select value={roster || NONE} onValueChange={(v) => onRosterChange(v === NONE ? "" : v)} disabled={!company}>
-          <SelectTrigger>
-            <SelectValue placeholder={company ? "Select a roster" : "Select a company first"} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NONE}>— None —</SelectItem>
-            {rosterOptions.map((r) => (
-              <SelectItem key={r} value={r}>
-                {r}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {showRoster && (
+        <div className="space-y-1.5">
+          <Label>Roster</Label>
+          <Select value={roster || NONE} onValueChange={(v) => onRosterChange(v === NONE ? "" : v)} disabled={!company}>
+            <SelectTrigger>
+              <SelectValue placeholder={company ? "Select a roster" : "Select a company first"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NONE}>— None —</SelectItem>
+              {rosterOptions.map((r) => (
+                <SelectItem key={r} value={r}>
+                  {r}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </>
   );
 }
