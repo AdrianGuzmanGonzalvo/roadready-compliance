@@ -9,6 +9,7 @@ import { TopBar } from "@/components/layout/topbar";
 import { UploadDialog } from "@/components/upload/upload-dialog";
 import { DriverDrawer } from "@/components/drivers/driver-drawer";
 import { AddDriverDialog } from "@/components/drivers/add-driver-dialog";
+import { AnalyticsIdentity, PageViewTracker } from "@/components/analytics/trackers";
 import { cn } from "@/lib/utils";
 
 const mobileNav = [
@@ -53,6 +54,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <UploadDialog />
       <AddDriverDialog />
       <DriverDrawer />
+
+      <AnalyticsIdentity />
+      <PageViewTracker surface="app" />
     </div>
   );
 }

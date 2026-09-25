@@ -10,6 +10,7 @@ import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { useCanEdit } from "@/hooks/use-auth";
 import { overallStatus } from "@/lib/compliance";
 import { filterByCompanyRoster } from "@/lib/scope";
+import { trackEvent } from "@/lib/analytics";
 
 export function TopBar() {
   const search = useUIStore((s) => s.search);
@@ -50,7 +51,13 @@ export function TopBar() {
       )}
 
       {canEdit && (
-        <Button size="sm" onClick={() => setUploadOpen(true)}>
+        <Button
+          size="sm"
+          onClick={() => {
+            trackEvent("modal_opened", { modal: "upload_excel", location: "topbar" });
+            setUploadOpen(true);
+          }}
+        >
           <UploadCloud className="size-4" />
           Upload New Excel
         </Button>

@@ -23,6 +23,7 @@ import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { useUploadDriverDocument, useDeleteDriverDocument } from "@/hooks/use-driver-documents";
 import { useCanEdit } from "@/hooks/use-auth";
 import { getFormDate } from "@/lib/compliance";
+import { fileTypeForAnalytics, trackEvent } from "@/lib/analytics";
 import type { ComplianceFormDTO, DriverStatusValue } from "@/types/driver";
 
 function toDateInputValue(iso: string | null): string {
@@ -126,6 +127,10 @@ export function DriverDrawer() {
       if (f.isCustom) customForm[f.key] = iso;
       else form[f.key as keyof ComplianceFormDTO] = iso;
     }
+    const statusChanged = status !== driver.status;
+    const formDatesChanged = formFieldDefs.filter(
+      (f) => (formDates[f.key] ?? "") !== toDateInputValue(getFormDate(driver, f))
+    ).length;
 
     updateDriver.mutate(
       {
@@ -136,6 +141,7 @@ export function DriverDrawer() {
       },
       {
         onSuccess: () => {
+          trackEvent("driver_updated", { status_changed: statusChanged, form_dates_changed: formDatesChanged });
           toast.success(`Saved compliance updates for ${driver.firstName} ${driver.lastName}`);
           closeDriver();
         },
@@ -151,6 +157,7 @@ export function DriverDrawer() {
 
     deleteDriver.mutate(driver.id, {
       onSuccess: () => {
+        trackEvent("driver_deleted", { location: "driver_drawer" });
         toast.success(`Deleted ${name}`);
         closeDriver();
       },
@@ -165,6 +172,11 @@ export function DriverDrawer() {
       { driverId: driver.id, file: docFile, label },
       {
         onSuccess: () => {
+          trackEvent("document_uploaded", {
+            file_type: fileTypeForAnalytics(docFile.type),
+            size_kb: Math.round(docFile.size / 1024),
+            has_custom_label: !!docLabel.trim(),
+          });
           toast.success(`Uploaded ${label}`);
           setDocFile(null);
           setDocLabel("");
@@ -181,7 +193,10 @@ export function DriverDrawer() {
     deleteDocument.mutate(
       { driverId: driver.id, documentId },
       {
-        onSuccess: () => toast.success(`Deleted ${label}`),
+        onSuccess: () => {
+          trackEvent("document_deleted", {});
+          toast.success(`Deleted ${label}`);
+        },
         onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to delete document"),
       }
     );
@@ -209,7 +224,11 @@ export function DriverDrawer() {
           </SheetDescription>
 
           <Button variant="outline" size="sm" asChild className="w-fit">
-            <a href={`/api/drivers/${driver.id}/forms`} download>
+            <a
+              href={`/api/drivers/${driver.id}/forms`}
+              download
+              onClick={() => trackEvent("package_form_downloaded", {})}
+            >
               <FileText className="size-4" />
               19A Package Form
             </a>

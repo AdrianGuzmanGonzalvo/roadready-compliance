@@ -13,6 +13,7 @@ import { useDeleteDriver } from "@/hooks/use-drivers";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { useCanEdit } from "@/hooks/use-auth";
 import { nextExpiringForm } from "@/lib/compliance";
+import { trackEvent } from "@/lib/analytics";
 import type { DriverDTO } from "@/types/driver";
 
 interface DriverTableProps {
@@ -36,7 +37,10 @@ export function DriverTable({ drivers, selectedIds, onToggleOne, onToggleAll }: 
     const name = `${driver.firstName} ${driver.lastName}`;
     if (!window.confirm(`Delete ${name}? This permanently removes their record and compliance dates.`)) return;
     deleteDriver.mutate(driver.id, {
-      onSuccess: () => toast.success(`Deleted ${name}`),
+      onSuccess: () => {
+        trackEvent("driver_deleted", { location: "driver_table" });
+        toast.success(`Deleted ${name}`);
+      },
       onError: () => toast.error("Failed to delete driver"),
     });
   }
@@ -74,7 +78,14 @@ export function DriverTable({ drivers, selectedIds, onToggleOne, onToggleAll }: 
         {drivers.map((driver) => {
           const next = nextExpiringForm(driver, formFieldDefs);
           return (
-            <TableRow key={driver.id} className="cursor-pointer" onClick={() => openDriver(driver.id)}>
+            <TableRow
+              key={driver.id}
+              className="cursor-pointer"
+              onClick={() => {
+                trackEvent("driver_opened", { source: "driver_table" });
+                openDriver(driver.id);
+              }}
+            >
               <TableCell>
                 <Checkbox
                   checked={selectedIds.has(driver.id)}

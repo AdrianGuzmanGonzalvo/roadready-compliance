@@ -3,14 +3,17 @@ import Link from "next/link";
 import Script from "next/script";
 import { ShieldCheck } from "lucide-react";
 import { CONTACT_EMAIL, GA_MEASUREMENT_ID } from "@/lib/marketing";
+import { PageViewTracker, TrackedLink } from "@/components/analytics/trackers";
 
 /**
  * Public (unauthenticated) pages: landing page and privacy policy.
- * Analytics is loaded ONLY here, never inside the signed-in application.
+ * GA4 is loaded ONLY here, never inside the signed-in application — src/lib/analytics.ts
+ * forwards only marketing-surface events to it.
  */
 export default function MarketingLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-full flex-col bg-white text-neutral-900">
+      <PageViewTracker surface="marketing" />
       {GA_MEASUREMENT_ID ? (
         <>
           <Script
@@ -36,18 +39,22 @@ gtag('config', '${GA_MEASUREMENT_ID}');`}
             </span>
           </Link>
           <div className="flex items-center gap-3">
-            <Link
+            <TrackedLink
               href="/login"
+              event="cta_clicked"
+              properties={{ cta: "login", location: "header" }}
               className="inline-flex h-9 items-center justify-center rounded-md border border-neutral-300 px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
             >
               Login
-            </Link>
-            <a
+            </TrackedLink>
+            <TrackedLink
               href="#request-demo"
+              event="cta_clicked"
+              properties={{ cta: "request_demo", location: "header" }}
               className="inline-flex h-9 items-center justify-center rounded-md bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-700"
             >
               Request a demo
-            </a>
+            </TrackedLink>
           </div>
         </div>
       </header>

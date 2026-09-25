@@ -14,6 +14,7 @@ import {
   RING_BLUE,
   initials,
 } from "@/components/dashboard-new/scorecard-data";
+import { trackEvent } from "@/lib/analytics";
 import type { FormFieldDef, DriverDTO } from "@/types/driver";
 
 const RADIUS = 22;
@@ -28,7 +29,10 @@ export function DriverScorecardHierarchy({ driver, formFieldDefs }: { driver: Dr
   return (
     <Card
       className="rounded-xl p-4 cursor-pointer transition-shadow hover:shadow-md hover:border-neutral-300"
-      onClick={() => openDriver(driver.id)}
+      onClick={() => {
+        trackEvent("driver_opened", { source: "scorecard", scorecard_view: "hierarchy" });
+        openDriver(driver.id);
+      }}
     >
       <div className="flex items-center gap-2.5 pb-3 border-b border-neutral-100">
         <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-[11px] font-bold text-neutral-600">

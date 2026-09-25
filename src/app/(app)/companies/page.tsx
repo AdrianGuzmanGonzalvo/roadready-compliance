@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { CompanyDialog } from "@/components/companies/company-dialog";
 import { RosterManager } from "@/components/companies/roster-manager";
 import { useCanEdit } from "@/hooks/use-auth";
+import { trackEvent, type ModalLocation } from "@/lib/analytics";
 import type { CompanyDTO } from "@/types/company";
 
 export default function CompaniesPage() {
@@ -19,12 +20,14 @@ export default function CompaniesPage() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingCompany, setEditingCompany] = React.useState<CompanyDTO | null>(null);
 
-  function openAddDialog() {
+  function openAddDialog(location: ModalLocation) {
+    trackEvent("modal_opened", { modal: "add_company", location });
     setEditingCompany(null);
     setDialogOpen(true);
   }
 
   function openEditDialog(company: CompanyDTO) {
+    trackEvent("modal_opened", { modal: "edit_company", location: "company_card" });
     setEditingCompany(company);
     setDialogOpen(true);
   }
@@ -38,7 +41,10 @@ export default function CompaniesPage() {
       return;
     }
     deleteCompany.mutate(company.id, {
-      onSuccess: () => toast.success(`Deleted ${company.name}`),
+      onSuccess: () => {
+        trackEvent("company_deleted", { roster_count: company.rosters.length });
+        toast.success(`Deleted ${company.name}`);
+      },
       onError: () => toast.error("Failed to delete company"),
     });
   }
@@ -53,7 +59,7 @@ export default function CompaniesPage() {
           </p>
         </div>
         {canEdit && (
-          <Button size="sm" onClick={openAddDialog}>
+          <Button size="sm" onClick={() => openAddDialog("companies_header")}>
             <Plus className="size-4" />
             Add Company
           </Button>
@@ -79,7 +85,7 @@ export default function CompaniesPage() {
             <Building2 className="size-8 text-neutral-300" />
             <p className="text-sm text-neutral-500">No companies yet.</p>
             {canEdit && (
-              <Button size="sm" variant="outline" onClick={openAddDialog}>
+              <Button size="sm" variant="outline" onClick={() => openAddDialog("companies_empty_state")}>
                 <Plus className="size-4" />
                 Add your first company
               </Button>

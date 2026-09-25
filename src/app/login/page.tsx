@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PageViewTracker } from "@/components/analytics/trackers";
+import { trackEvent } from "@/lib/analytics";
 
 function LoginForm() {
   const router = useRouter();
@@ -41,6 +43,7 @@ function LoginForm() {
     });
 
     setLoading(false);
+    trackEvent("login_submitted", { success: res.ok });
 
     if (!res.ok) {
       setError("Incorrect company code, username, or password.");
@@ -114,6 +117,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-white p-4">
+      <PageViewTracker surface="auth" />
       {/* Same diagonal navy/blue treatment as the marketing landing page */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div

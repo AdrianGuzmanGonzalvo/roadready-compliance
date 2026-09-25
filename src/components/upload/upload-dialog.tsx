@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useUIStore } from "@/store/ui-store";
 import { useImportDrivers } from "@/hooks/use-drivers";
+import { trackEvent } from "@/lib/analytics";
 
 export function UploadDialog() {
   const open = useUIStore((s) => s.uploadOpen);
@@ -31,6 +32,13 @@ export function UploadDialog() {
     if (!file) return;
     importDrivers.mutate(file, {
       onSuccess: (result) => {
+        trackEvent("driver_import_completed", {
+          success: true,
+          total: result.total,
+          created: result.created,
+          updated: result.updated,
+          warning_count: result.warnings.length,
+        });
         toast.success(`Imported ${result.total} driver record(s)`, {
           description: `${result.created} created · ${result.updated} updated${
             result.warnings.length ? ` · ${result.warnings.length} warning(s)` : ""
@@ -41,6 +49,7 @@ export function UploadDialog() {
         setOpen(false);
       },
       onError: (err) => {
+        trackEvent("driver_import_completed", { success: false });
         toast.error(err instanceof Error ? err.message : "Import failed");
       },
     });

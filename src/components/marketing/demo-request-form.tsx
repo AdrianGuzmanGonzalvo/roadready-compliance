@@ -6,14 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CONTACT_EMAIL } from "@/lib/marketing";
+import { trackEvent } from "@/lib/analytics";
 
 type Status = "idle" | "sending" | "sent" | "error";
-
-declare global {
-  interface Window {
-    gtag?: (command: string, eventName: string, params?: Record<string, unknown>) => void;
-  }
-}
 
 /**
  * Self-contained "floating card": renders its own title, fields and submit
@@ -38,15 +33,18 @@ export function DemoRequestForm() {
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
+        trackEvent("demo_request_submitted", { outcome: "rejected" });
         setStatus("error");
         setError(body.error ?? "We could not send your request.");
         return;
       }
       // Conversion signal for GA4 / Google Ads. Fires only after the server accepted the request.
       window.gtag?.("event", "generate_lead", { form: "demo_request" });
+      trackEvent("demo_request_submitted", { outcome: "success" });
       form.reset();
       setStatus("sent");
     } catch {
+      trackEvent("demo_request_submitted", { outcome: "network_error" });
       setStatus("error");
       setError("We could not reach the server.");
     }

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUpdateDriver } from "@/hooks/use-drivers";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 import type { DriverStatusValue } from "@/types/driver";
 
 const STATUS_STYLES: Record<DriverStatusValue, string> = {
@@ -36,7 +37,10 @@ export function StatusQuickSelect({
     updateDriver.mutate(
       { id: driverId, driver: { status: next as DriverStatusValue } },
       {
-        onSuccess: () => toast.success(`${driverName} is now ${STATUS_LABELS[next as DriverStatusValue]}`),
+        onSuccess: () => {
+          trackEvent("driver_status_changed", { from: status, to: next as DriverStatusValue });
+          toast.success(`${driverName} is now ${STATUS_LABELS[next as DriverStatusValue]}`);
+        },
         onError: () => toast.error("Failed to update status"),
       }
     );

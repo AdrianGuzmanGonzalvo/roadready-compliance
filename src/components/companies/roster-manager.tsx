@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCreateRoster, useDeleteRoster } from "@/hooks/use-companies";
 import { useCanEdit } from "@/hooks/use-auth";
+import { trackEvent } from "@/lib/analytics";
 import type { RosterDTO } from "@/types/company";
 
 export function RosterManager({ companyId, rosters }: { companyId: string; rosters: RosterDTO[] }) {
@@ -23,6 +24,7 @@ export function RosterManager({ companyId, rosters }: { companyId: string; roste
       { companyId, name: trimmed },
       {
         onSuccess: () => {
+          trackEvent("roster_created", {});
           setName("");
           setAdding(false);
         },
@@ -33,7 +35,10 @@ export function RosterManager({ companyId, rosters }: { companyId: string; roste
 
   function handleRemove(id: string, rosterName: string) {
     deleteRoster.mutate(id, {
-      onSuccess: () => toast.success(`Removed roster ${rosterName}`),
+      onSuccess: () => {
+        trackEvent("roster_deleted", {});
+        toast.success(`Removed roster ${rosterName}`);
+      },
       onError: () => toast.error("Failed to remove roster"),
     });
   }

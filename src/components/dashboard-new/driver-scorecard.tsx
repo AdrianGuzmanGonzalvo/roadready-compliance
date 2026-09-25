@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { STATUS_CONFIG } from "@/lib/compliance";
 import { useUIStore } from "@/store/ui-store";
 import { buildScorecardData, STATUS_TEXT_COLOR, STATUS_BADGE_CLASS, STATUS_SOLID_CLASS, RING_BLUE } from "@/components/dashboard-new/scorecard-data";
+import { trackEvent } from "@/lib/analytics";
 import type { FormFieldDef, DriverDTO } from "@/types/driver";
 
 const RADIUS = 24;
@@ -23,7 +24,10 @@ export function DriverScorecard({ driver, formFieldDefs }: { driver: DriverDTO; 
   return (
     <Card
       className="rounded-xl p-4 cursor-pointer transition-shadow hover:shadow-md hover:border-neutral-300"
-      onClick={() => openDriver(driver.id)}
+      onClick={() => {
+        trackEvent("driver_opened", { source: "scorecard", scorecard_view: "structured" });
+        openDriver(driver.id);
+      }}
     >
       {/* Header: ring + identity, full-width so nothing has to wrap awkwardly */}
       <div className="flex items-center gap-3">

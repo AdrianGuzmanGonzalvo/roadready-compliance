@@ -6,6 +6,7 @@ import { useUIStore } from "@/store/ui-store";
 import { useDrivers } from "@/hooks/use-drivers";
 import { useCompanies } from "@/hooks/use-companies";
 import { getCompanyOptions } from "@/lib/scope";
+import { trackEvent } from "@/lib/analytics";
 
 export function CompanyRosterFilter() {
   const { data: drivers } = useDrivers();
@@ -25,7 +26,14 @@ export function CompanyRosterFilter() {
   return (
     <div className="flex items-center gap-1.5">
       <Building2 className="size-4 text-neutral-400 hidden sm:block" />
-      <Select value={companyFilter} onValueChange={setCompanyFilter}>
+      <Select
+        value={companyFilter}
+        onValueChange={(v) => {
+          // Company names are customer data — record only whether a specific one was picked.
+          trackEvent("filter_changed", { filter: "company", value: v === "ALL" ? "ALL" : "specific", location: "topbar" });
+          setCompanyFilter(v);
+        }}
+      >
         <SelectTrigger
           className="w-[150px] sm:w-[260px]"
           title={companyFilter === "ALL" ? "Filter by company" : companyFilter}

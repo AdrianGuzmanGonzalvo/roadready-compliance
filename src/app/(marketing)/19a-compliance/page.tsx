@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CheckCircle2, FileSpreadsheet, FolderOpen, CalendarClock, Users, ShieldCheck, Mail } from "lucide-react";
 import { DemoRequestForm } from "@/components/marketing/demo-request-form";
+import { TrackedLink } from "@/components/analytics/trackers";
 import { CAPABILITIES, TRACKED_FORMS } from "@/lib/marketing";
 
 export const metadata: Metadata = {
@@ -100,18 +101,22 @@ export default function Article19APage() {
                 place — so nothing is found missing during an audit.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
-                <a
+                <TrackedLink
                   href="#request-demo"
+                  event="cta_clicked"
+                  properties={{ cta: "request_demo", location: "hero" }}
                   className="inline-flex h-12 items-center justify-center rounded-lg bg-blue-600 px-7 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
                 >
                   Request a demo
-                </a>
-                <a
+                </TrackedLink>
+                <TrackedLink
                   href="#how-it-works"
+                  event="cta_clicked"
+                  properties={{ cta: "how_it_works", location: "hero" }}
                   className="inline-flex h-12 items-center justify-center rounded-lg border border-neutral-300 px-7 text-sm font-semibold text-neutral-800 transition-colors hover:bg-neutral-50"
                 >
                   How it works
-                </a>
+                </TrackedLink>
               </div>
             </div>
 

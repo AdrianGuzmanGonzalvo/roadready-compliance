@@ -6,6 +6,7 @@ import { LayoutDashboard, LayoutGrid, Users, Building2, UploadCloud, FileBarChar
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { useCanEdit } from "@/hooks/use-auth";
+import { resetAnalytics, trackEvent } from "@/lib/analytics";
 
 const navItems = [
   { href: "/dashboard-new", label: "Dashboard", icon: LayoutGrid, badge: "NEW" },
@@ -24,7 +25,9 @@ export function Sidebar() {
   const canEdit = useCanEdit();
 
   async function handleLogout() {
+    trackEvent("user_logged_out", { location: "sidebar" });
     await fetch("/api/auth/logout", { method: "POST" });
+    resetAnalytics();
     router.push("/");
     router.refresh();
   }
@@ -65,7 +68,10 @@ export function Sidebar() {
 
         {canEdit && (
           <button
-            onClick={() => setUploadOpen(true)}
+            onClick={() => {
+              trackEvent("modal_opened", { modal: "upload_excel", location: "sidebar" });
+              setUploadOpen(true);
+            }}
             className="w-full flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 transition-colors"
           >
             <UploadCloud className="size-4" />

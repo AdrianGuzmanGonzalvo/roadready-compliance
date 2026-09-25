@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CompanyRosterFields } from "@/components/companies/company-roster-fields";
 import { useUIStore } from "@/store/ui-store";
 import { useCreateDriver } from "@/hooks/use-drivers";
+import { trackEvent } from "@/lib/analytics";
 import type { DriverStatusValue } from "@/types/driver";
 
 const EMPTY = {
@@ -66,6 +67,11 @@ export function AddDriverDialog() {
       { ...fields, status },
       {
         onSuccess: (driver) => {
+          trackEvent("driver_created", {
+            status,
+            has_company: !!fields.company.trim(),
+            has_roster: !!fields.roster.trim(),
+          });
           toast.success(`Added ${driver.firstName} ${driver.lastName}`);
           setOpen(false);
           reset();

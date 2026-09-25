@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateUser, useUpdateUser } from "@/hooks/use-users";
+import { trackEvent } from "@/lib/analytics";
 import type { UserDTO, UserRole } from "@/types/user";
 
 export function UserDialog({
@@ -57,6 +58,7 @@ export function UserDialog({
         { id: user.id, username: username.trim(), role, ...(password ? { password } : {}) },
         {
           onSuccess: () => {
+            trackEvent("user_updated", { role, password_changed: password.length > 0 });
             toast.success(`Updated ${username}`);
             onOpenChange(false);
           },
@@ -68,6 +70,7 @@ export function UserDialog({
         { username: username.trim(), password, role },
         {
           onSuccess: () => {
+            trackEvent("user_created", { role });
             toast.success(`Added user ${username}`);
             onOpenChange(false);
           },

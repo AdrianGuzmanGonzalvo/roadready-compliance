@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { CompanyRosterFields } from "@/components/companies/company-roster-fields";
 import { useBulkAssignCompanyRoster } from "@/hooks/use-drivers";
+import { trackEvent } from "@/lib/analytics";
 
 export function AssignCompanyRosterDialog({
   open,
@@ -43,6 +44,7 @@ export function AssignCompanyRosterDialog({
       { ids: driverIds, company, roster },
       {
         onSuccess: () => {
+          trackEvent("drivers_bulk_assigned", { count, company_set: !!company, roster_set: !!roster });
           toast.success(`Updated ${count} driver${count === 1 ? "" : "s"}`);
           onOpenChange(false);
           onApplied?.();

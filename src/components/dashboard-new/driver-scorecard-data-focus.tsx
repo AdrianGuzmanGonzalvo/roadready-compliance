@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { buildScorecardData, STATUS_BADGE_CLASS, RING_BLUE } from "@/components/dashboard-new/scorecard-data";
+import { trackEvent } from "@/lib/analytics";
 import type { FormFieldDef, DriverDTO } from "@/types/driver";
 
 const RADIUS = 34;
@@ -27,7 +28,10 @@ export function DriverScorecardDataFocus({ driver, formFieldDefs }: { driver: Dr
   return (
     <Card
       className="rounded-xl overflow-hidden cursor-pointer transition-shadow hover:shadow-md hover:border-neutral-300"
-      onClick={() => openDriver(driver.id)}
+      onClick={() => {
+        trackEvent("driver_opened", { source: "scorecard", scorecard_view: "data-focus" });
+        openDriver(driver.id);
+      }}
     >
       {urgent[0] && (
         <div

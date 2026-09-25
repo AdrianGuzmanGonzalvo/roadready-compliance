@@ -16,6 +16,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { ComplianceBadge, DriverStatusBadge } from "@/components/drivers/compliance-badge";
 import { ReportSchedulePanel } from "@/components/reports/report-schedule-panel";
 import { filterByCompanyRoster } from "@/lib/scope";
+import { formKeyForAnalytics, trackEvent } from "@/lib/analytics";
 import type { DriverStatusValue } from "@/types/driver";
 
 const STATUS_OPTIONS: DriverStatusValue[] = ["ACTIVE", "INACTIVE", "TERMINATED"];
@@ -42,6 +43,7 @@ export default function SoonToExpireReportPage() {
   const [daysMax, setDaysMax] = React.useState("30");
 
   function resetFilters() {
+    trackEvent("filters_reset", { location: "soon_to_expire_report" });
     setStatusFilter({ ACTIVE: true, INACTIVE: false, TERMINATED: false });
     setSearch("");
     setFormFilter("ALL");
@@ -102,15 +104,36 @@ export default function SoonToExpireReportPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 print:hidden">
-          <Button variant="outline" size="sm" onClick={() => exportDueSoonToCsv(entries)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              trackEvent("report_exported", { report: "soon_to_expire", format: "csv", row_count: entries.length });
+              exportDueSoonToCsv(entries);
+            }}
+          >
             <Download className="size-4" />
             CSV
           </Button>
-          <Button variant="outline" size="sm" onClick={() => exportDueSoonToXlsx(entries)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              trackEvent("report_exported", { report: "soon_to_expire", format: "xlsx", row_count: entries.length });
+              exportDueSoonToXlsx(entries);
+            }}
+          >
             <FileSpreadsheet className="size-4" />
             Excel
           </Button>
-          <Button variant="outline" size="sm" onClick={() => window.print()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              trackEvent("report_exported", { report: "soon_to_expire", format: "print", row_count: entries.length });
+              window.print();
+            }}
+          >
             <Printer className="size-4" />
             Print
           </Button>
@@ -129,7 +152,17 @@ export default function SoonToExpireReportPage() {
             />
           </div>
 
-          <Select value={formFilter} onValueChange={(v) => setFormFilter(v as typeof formFilter)}>
+          <Select
+            value={formFilter}
+            onValueChange={(v) => {
+              trackEvent("filter_changed", {
+                filter: "report_form",
+                value: formKeyForAnalytics(v),
+                location: "soon_to_expire_report",
+              });
+              setFormFilter(v as typeof formFilter);
+            }}
+          >
             <SelectTrigger className="w-[190px]">
               <SelectValue placeholder="Form" />
             </SelectTrigger>
@@ -181,7 +214,15 @@ export default function SoonToExpireReportPage() {
               <input
                 type="checkbox"
                 checked={statusFilter[status]}
-                onChange={(e) => setStatusFilter((s) => ({ ...s, [status]: e.target.checked }))}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  trackEvent("filter_changed", {
+                    filter: "report_driver_status",
+                    value: `${status}_${checked ? "on" : "off"}`,
+                    location: "soon_to_expire_report",
+                  });
+                  setStatusFilter((s) => ({ ...s, [status]: checked }));
+                }}
                 className="size-3.5"
               />
               {status === "ACTIVE" ? "Active" : status === "INACTIVE" ? "Inactive" : "Terminated"} drivers
@@ -240,7 +281,10 @@ export default function SoonToExpireReportPage() {
                   <TableRow
                     key={`${entry.driverId}-${entry.formKey}`}
                     className="cursor-pointer"
-                    onClick={() => openDriver(entry.driverId)}
+                    onClick={() => {
+                      trackEvent("driver_opened", { source: "soon_to_expire_report" });
+                      openDriver(entry.driverId);
+                    }}
                   >
                     <TableCell className="font-medium text-neutral-900">
                       {entry.lastName}, {entry.firstName}

@@ -53,6 +53,17 @@ export default function PrivacyPage() {
         </section>
 
         <section>
+          <h2 className="text-lg font-medium text-neutral-900">Product usage analytics</h2>
+          <p className="mt-2">
+            To improve the service we use PostHog to count how its features are used, for example which pages are
+            opened, when a roster is imported or when a report is exported. These records contain only the type of
+            action, counts, and an internal account ID with its role and company code. They never contain driver records, names,
+            license numbers, contact details or anything typed into the application, and we do not record your
+            screen.
+          </p>
+        </section>
+
+        <section>
           <h2 className="text-lg font-medium text-neutral-900">Your choices</h2>
           <p className="mt-2">
             Write to{" "}
