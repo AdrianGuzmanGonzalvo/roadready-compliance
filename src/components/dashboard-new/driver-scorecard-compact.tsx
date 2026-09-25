@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { buildScorecardData, STATUS_SOLID_CLASS, RING_BLUE, initials } from "@/components/dashboard-new/scorecard-data";
+import { trackEvent } from "@/lib/analytics";
 import type { FormFieldDef, DriverDTO } from "@/types/driver";
 
 const RADIUS = 24;
@@ -20,7 +21,10 @@ export function DriverScorecardCompact({ driver, formFieldDefs }: { driver: Driv
   return (
     <Card
       className="rounded-xl p-4 cursor-pointer transition-shadow hover:shadow-md hover:border-neutral-300"
-      onClick={() => openDriver(driver.id)}
+      onClick={() => {
+        trackEvent("driver_opened", { source: "scorecard", scorecard_view: "compact" });
+        openDriver(driver.id);
+      }}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">

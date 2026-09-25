@@ -10,6 +10,7 @@ import { KpiCardsNew } from "@/components/dashboard-new/kpi-cards-new";
 import { DriverScorecardsGrid } from "@/components/dashboard-new/driver-scorecards-grid";
 import { SCORECARD_VIEWS, type ScorecardView } from "@/components/dashboard-new/scorecard-data";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 
 const VIEW_STORAGE_KEY = "dashboard-new-scorecard-view";
 
@@ -42,6 +43,7 @@ export default function DashboardNewPage() {
   }, []);
 
   function handleViewChange(next: ScorecardView) {
+    if (next !== view) trackEvent("scorecard_view_changed", { view: next });
     setView(next);
     try {
       localStorage.setItem(VIEW_STORAGE_KEY, next);

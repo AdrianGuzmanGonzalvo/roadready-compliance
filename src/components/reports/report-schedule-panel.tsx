@@ -16,6 +16,7 @@ import {
   type CreateScheduleInput,
 } from "@/hooks/use-report-schedules";
 import type { ReportScheduleFrequency } from "@/types/report-schedule";
+import { trackEvent } from "@/lib/analytics";
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -43,6 +44,10 @@ export function ReportSchedulePanel() {
 
     createSchedule.mutate(payload, {
       onSuccess: () => {
+        trackEvent("report_schedule_created", {
+          frequency,
+          recipient_count: recipients.split(",").filter((r) => r.trim()).length,
+        });
         toast.success("Schedule added");
         setRecipients("");
       },
@@ -82,7 +87,12 @@ export function ReportSchedulePanel() {
                     variant="ghost"
                     size="icon"
                     title={s.enabled ? "Pause" : "Resume"}
-                    onClick={() => toggleSchedule.mutate({ id: s.id, enabled: !s.enabled })}
+                    onClick={() =>
+                      toggleSchedule.mutate(
+                        { id: s.id, enabled: !s.enabled },
+                        { onSuccess: () => trackEvent("report_schedule_toggled", { enabled: !s.enabled }) }
+                      )
+                    }
                   >
                     {s.enabled ? <Pause className="size-4" /> : <Play className="size-4" />}
                   </Button>
@@ -91,7 +101,9 @@ export function ReportSchedulePanel() {
                     size="icon"
                     title="Delete"
                     className="text-neutral-400 hover:text-red-600"
-                    onClick={() => deleteSchedule.mutate(s.id)}
+                    onClick={() =>
+                      deleteSchedule.mutate(s.id, { onSuccess: () => trackEvent("report_schedule_deleted", {}) })
+                    }
                   >
                     <Trash2 className="size-4" />
                   </Button>

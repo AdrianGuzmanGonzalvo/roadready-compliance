@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateCompany, useUpdateCompany } from "@/hooks/use-companies";
+import { trackEvent } from "@/lib/analytics";
 import type { CompanyDTO } from "@/types/company";
 
 const EMPTY = {
@@ -63,6 +64,7 @@ export function CompanyDialog({
         { id: company.id, ...fields },
         {
           onSuccess: () => {
+            trackEvent("company_updated", {});
             toast.success(`Updated ${fields.name}`);
             onOpenChange(false);
           },
@@ -79,6 +81,7 @@ export function CompanyDialog({
         { ...fields, rosters },
         {
           onSuccess: () => {
+            trackEvent("company_created", { roster_count: rosters.length });
             toast.success(`Added ${fields.name}`);
             onOpenChange(false);
           },

@@ -9,6 +9,7 @@ import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { useUIStore } from "@/store/ui-store";
 import type { KpiStatusFilter } from "@/store/ui-store";
 import { Sparkline } from "@/components/dashboard-new/sparkline";
+import { trackEvent } from "@/lib/analytics";
 import type { DriverDTO } from "@/types/driver";
 
 function Kpi({
@@ -79,7 +80,9 @@ export function KpiCardsNew({ drivers }: { drivers: DriverDTO[] }) {
   const expiring60Trend = bucketExpiringCounts(active, now, formFieldDefs, 0, 60, 6);
 
   function toggle(filter: KpiStatusFilter) {
-    setKpiStatusFilter(kpiStatusFilter === filter ? "ALL" : filter);
+    const next = kpiStatusFilter === filter ? "ALL" : filter;
+    trackEvent("kpi_card_clicked", { kpi: filter, dashboard: "new", active: next !== "ALL" });
+    setKpiStatusFilter(next);
   }
 
   return (
@@ -95,7 +98,7 @@ export function KpiCardsNew({ drivers }: { drivers: DriverDTO[] }) {
         sparkLabel="Active vs. terminated"
         filterValue="ALL"
         active={kpiStatusFilter === "ALL"}
-        onToggle={() => setKpiStatusFilter("ALL")}
+        onToggle={toggle}
       />
       <Kpi
         icon={AlertOctagon}

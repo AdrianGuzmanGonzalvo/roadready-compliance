@@ -6,6 +6,7 @@ import { ComplianceBadge } from "@/components/drivers/compliance-badge";
 import { useUIStore } from "@/store/ui-store";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { getFormDate } from "@/lib/compliance";
+import { trackEvent } from "@/lib/analytics";
 import type { DriverDTO } from "@/types/driver";
 
 export function ExpirationMatrix({ drivers }: { drivers: DriverDTO[] }) {
@@ -43,7 +44,10 @@ export function ExpirationMatrix({ drivers }: { drivers: DriverDTO[] }) {
               <TableRow
                 key={driver.id}
                 className="cursor-pointer"
-                onClick={() => openDriver(driver.id)}
+                onClick={() => {
+                  trackEvent("driver_opened", { source: "expiration_matrix" });
+                  openDriver(driver.id);
+                }}
               >
                 <TableCell className="sticky left-0 bg-white font-medium text-neutral-900">
                   {driver.lastName}, {driver.firstName}

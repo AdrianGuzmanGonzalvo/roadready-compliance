@@ -8,6 +8,7 @@ import { summarizeFormExpiries } from "@/lib/compliance";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { useUIStore } from "@/store/ui-store";
 import type { KpiStatusFilter } from "@/store/ui-store";
+import { trackEvent } from "@/lib/analytics";
 import type { DriverDTO } from "@/types/driver";
 
 interface KpiCardsProps {
@@ -65,7 +66,9 @@ export function KpiCards({ drivers }: KpiCardsProps) {
   const summary = summarizeFormExpiries(active, new Date(), formFieldDefs);
 
   function toggle(filter: KpiStatusFilter) {
-    setKpiStatusFilter(kpiStatusFilter === filter ? "ALL" : filter);
+    const next = kpiStatusFilter === filter ? "ALL" : filter;
+    trackEvent("kpi_card_clicked", { kpi: filter, dashboard: "classic", active: next !== "ALL" });
+    setKpiStatusFilter(next);
   }
 
   return (
@@ -78,7 +81,7 @@ export function KpiCards({ drivers }: KpiCardsProps) {
         accent="bg-neutral-100 text-neutral-700"
         filterValue="ALL"
         active={kpiStatusFilter === "ALL"}
-        onToggle={() => setKpiStatusFilter("ALL")}
+        onToggle={toggle}
       />
       <Kpi
         icon={AlertOctagon}

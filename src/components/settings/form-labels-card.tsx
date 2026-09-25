@@ -25,6 +25,7 @@ import {
 } from "@/hooks/use-form-labels";
 import { FORM_FIELD_DEFS } from "@/types/driver";
 import type { FormFieldDef } from "@/types/driver";
+import { trackEvent } from "@/lib/analytics";
 
 type EditableField = "label" | "description" | "frequency";
 
@@ -114,6 +115,7 @@ function BuiltInFormRow({
           value: !trimmed || trimmed === defaults[field] ? null : trimmed,
         });
       }
+      trackEvent("form_label_updated", { fields_changed: changed.length, reset: false });
       toast.success(`Saved ${defaultLabel}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save");
@@ -124,7 +126,10 @@ function BuiltInFormRow({
     setField(field, defaults[field]);
     updateField.mutate(
       { key: formKey, field, value: null },
-      { onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to reset") }
+      {
+        onSuccess: () => trackEvent("form_label_updated", { fields_changed: 1, reset: true }),
+        onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to reset"),
+      }
     );
   }
 
@@ -197,6 +202,7 @@ function CustomFormRow({ form }: { form: FormFieldDef }) {
         description: values.description.trim(),
         frequency: values.frequency.trim(),
       });
+      trackEvent("custom_form_updated", {});
       toast.success(`Saved ${values.label.trim()}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save");
@@ -206,7 +212,10 @@ function CustomFormRow({ form }: { form: FormFieldDef }) {
   function handleDelete() {
     if (!window.confirm(`Delete "${form.label}"? This also removes every driver's recorded date for it.`)) return;
     deleteCustomForm.mutate(form.key, {
-      onSuccess: () => toast.success(`Deleted ${form.label}`),
+      onSuccess: () => {
+        trackEvent("custom_form_deleted", {});
+        toast.success(`Deleted ${form.label}`);
+      },
       onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to delete form"),
     });
   }
@@ -275,6 +284,7 @@ function AddFormDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
       { label: label.trim(), description: description.trim(), frequency: frequency.trim() },
       {
         onSuccess: () => {
+          trackEvent("custom_form_created", {});
           toast.success(`Added ${label.trim()}`);
           onOpenChange(false);
         },
@@ -334,7 +344,13 @@ export function FormLabelsCard() {
             Rename any form, its official name, or renewal frequency, or add a new one. Click Save to apply changes.
           </p>
         </div>
-        <Button size="sm" onClick={() => setAddOpen(true)}>
+        <Button
+          size="sm"
+          onClick={() => {
+            trackEvent("modal_opened", { modal: "add_custom_form", location: "forms_card" });
+            setAddOpen(true);
+          }}
+        >
           <Plus className="size-4" />
           Add Form
         </Button>

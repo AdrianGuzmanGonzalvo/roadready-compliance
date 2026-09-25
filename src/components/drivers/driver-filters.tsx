@@ -14,6 +14,7 @@ import {
 import { useUIStore } from "@/store/ui-store";
 import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { useCanEdit } from "@/hooks/use-auth";
+import { formKeyForAnalytics, trackEvent } from "@/lib/analytics";
 
 interface DriverFiltersProps {
   filteredCount: number;
@@ -38,7 +39,13 @@ export function DriverFilters({ filteredCount, totalCount, onExportXlsx, onExpor
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Tabs value={statusTab} onValueChange={(v) => setStatusTab(v as typeof statusTab)}>
+        <Tabs
+          value={statusTab}
+          onValueChange={(v) => {
+            trackEvent("filter_changed", { filter: "driver_status_tab", value: v, location: "drivers_list" });
+            setStatusTab(v as typeof statusTab);
+          }}
+        >
           <TabsList>
             <TabsTrigger value="ACTIVE">Active Drivers</TabsTrigger>
             <TabsTrigger value="INACTIVE">Inactive Drivers</TabsTrigger>
@@ -57,7 +64,13 @@ export function DriverFilters({ filteredCount, totalCount, onExportXlsx, onExpor
             Excel
           </Button>
           {canEdit && (
-            <Button size="sm" onClick={() => setAddDriverOpen(true)}>
+            <Button
+              size="sm"
+              onClick={() => {
+                trackEvent("modal_opened", { modal: "add_driver", location: "drivers_toolbar" });
+                setAddDriverOpen(true);
+              }}
+            >
               <UserPlus className="size-4" />
               Add Driver
             </Button>
@@ -76,7 +89,13 @@ export function DriverFilters({ filteredCount, totalCount, onExportXlsx, onExpor
           />
         </div>
 
-        <Select value={formFilter} onValueChange={(v) => setFormFilter(v as typeof formFilter)}>
+        <Select
+          value={formFilter}
+          onValueChange={(v) => {
+            trackEvent("filter_changed", { filter: "form", value: formKeyForAnalytics(v), location: "drivers_list" });
+            setFormFilter(v as typeof formFilter);
+          }}
+        >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Filter by form" />
           </SelectTrigger>
@@ -90,7 +109,13 @@ export function DriverFilters({ filteredCount, totalCount, onExportXlsx, onExpor
           </SelectContent>
         </Select>
 
-        <Select value={windowFilter} onValueChange={(v) => setWindowFilter(v as typeof windowFilter)}>
+        <Select
+          value={windowFilter}
+          onValueChange={(v) => {
+            trackEvent("filter_changed", { filter: "expiration_window", value: v, location: "drivers_list" });
+            setWindowFilter(v as typeof windowFilter);
+          }}
+        >
           <SelectTrigger className="w-[170px]">
             <SelectValue placeholder="Expiration window" />
           </SelectTrigger>

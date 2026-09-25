@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { statusForDate, getFormDate } from "@/lib/compliance";
 import { exportDriversToXlsx, exportDriversToCsv } from "@/lib/export";
 import { filterByCompanyRoster, matchesSearch } from "@/lib/scope";
+import { trackEvent } from "@/lib/analytics";
 
 function SyncStatusFromUrl() {
   const searchParams = useSearchParams();
@@ -95,6 +96,7 @@ export default function DriversPage() {
     }
     deleteDrivers.mutate(Array.from(selectedIds), {
       onSuccess: () => {
+        trackEvent("drivers_bulk_deleted", { count });
         toast.success(`Deleted ${count} driver${count === 1 ? "" : "s"}`);
         setSelectedIds(new Set());
       },
@@ -131,8 +133,14 @@ export default function DriversPage() {
           <DriverFilters
             filteredCount={filtered.length}
             totalCount={scoped.length}
-            onExportXlsx={() => exportDriversToXlsx(filtered, undefined, formFieldDefs)}
-            onExportCsv={() => exportDriversToCsv(filtered, undefined, formFieldDefs)}
+            onExportXlsx={() => {
+              trackEvent("report_exported", { report: "drivers_list", format: "xlsx", row_count: filtered.length });
+              exportDriversToXlsx(filtered, undefined, formFieldDefs);
+            }}
+            onExportCsv={() => {
+              trackEvent("report_exported", { report: "drivers_list", format: "csv", row_count: filtered.length });
+              exportDriversToCsv(filtered, undefined, formFieldDefs);
+            }}
           />
 
           {selectedIds.size > 0 && (
@@ -140,7 +148,14 @@ export default function DriversPage() {
               <span className="text-sm font-medium text-neutral-800">
                 {selectedIds.size} driver{selectedIds.size === 1 ? "" : "s"} selected
               </span>
-              <Button size="sm" variant="outline" onClick={() => setAssignDialogOpen(true)}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  trackEvent("modal_opened", { modal: "assign_company_roster", location: "bulk_actions" });
+                  setAssignDialogOpen(true);
+                }}
+              >
                 <Building2 className="size-4" />
                 Assign Company / Roster
               </Button>

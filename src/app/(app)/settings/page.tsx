@@ -11,6 +11,7 @@ import { useCurrentUser } from "@/hooks/use-auth";
 import { useUsers, useDeleteUser } from "@/hooks/use-users";
 import { UserDialog } from "@/components/settings/user-dialog";
 import { FormLabelsCard } from "@/components/settings/form-labels-card";
+import { resetAnalytics, trackEvent } from "@/lib/analytics";
 import type { UserDTO } from "@/types/user";
 
 export default function SettingsPage() {
@@ -25,11 +26,13 @@ export default function SettingsPage() {
   const [editingUser, setEditingUser] = React.useState<UserDTO | null>(null);
 
   function openAddDialog() {
+    trackEvent("modal_opened", { modal: "add_user", location: "users_card" });
     setEditingUser(null);
     setDialogOpen(true);
   }
 
   function openEditDialog(user: UserDTO) {
+    trackEvent("modal_opened", { modal: "edit_user", location: "users_card" });
     setEditingUser(user);
     setDialogOpen(true);
   }
@@ -37,13 +40,18 @@ export default function SettingsPage() {
   function handleDelete(user: UserDTO) {
     if (!window.confirm(`Delete user "${user.username}"? They'll immediately lose access.`)) return;
     deleteUser.mutate(user.id, {
-      onSuccess: () => toast.success(`Deleted ${user.username}`),
+      onSuccess: () => {
+        trackEvent("user_deleted", {});
+        toast.success(`Deleted ${user.username}`);
+      },
       onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to delete user"),
     });
   }
 
   async function handleLogout() {
+    trackEvent("user_logged_out", { location: "settings" });
     await fetch("/api/auth/logout", { method: "POST" });
+    resetAnalytics();
     router.push("/");
     router.refresh();
   }
