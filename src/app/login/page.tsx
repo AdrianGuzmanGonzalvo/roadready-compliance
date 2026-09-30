@@ -63,7 +63,7 @@ function LoginForm() {
         <ShieldCheck className="size-5 text-blue-600" />
         <div>
           <p className="font-semibold text-neutral-900 text-sm leading-tight">RoadReady</p>
-          <p className="text-[11px] text-neutral-400 leading-tight">19-A Compliance</p>
+          <p className="text-[11px] text-neutral-400 leading-tight">19-A Compliance Software</p>
         </div>
       </div>
 

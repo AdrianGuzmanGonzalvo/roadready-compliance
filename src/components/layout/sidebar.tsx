@@ -38,7 +38,7 @@ export function Sidebar() {
         <ShieldCheck className="size-5 text-blue-600" />
         <span className="font-semibold text-neutral-900 text-sm leading-tight">
           RoadReady
-          <span className="block text-[11px] font-normal text-neutral-400">19-A Compliance</span>
+          <span className="block text-[11px] font-normal text-neutral-400">19-A Compliance Software</span>
         </span>
       </div>
 

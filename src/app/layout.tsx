@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "RoadReady Compliance",
-  description: "Article 19-A Driver Qualification Record Compliance",
+  description: "Software for tracking Article 19-A Driver Qualification Record compliance.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

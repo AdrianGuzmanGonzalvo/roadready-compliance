@@ -7,7 +7,7 @@ import { CAPABILITIES, TRACKED_FORMS } from "@/lib/marketing";
 export const metadata: Metadata = {
   title: "Article 19-A Compliance Software | RoadReady Compliance",
   description:
-    "Track Article 19-A Driver Qualification Records in one place: driver rosters, the nine required forms and expiration status at a glance.",
+    "Software to track Article 19-A Driver Qualification Records in one place: driver rosters, the nine required forms and expiration status at a glance.",
   // Served at "/" for signed-out visitors (see proxy.ts) as well as here directly — "/" is canonical.
   alternates: { canonical: "/" },
 };
@@ -87,7 +87,7 @@ export default function Article19APage() {
             <div>
               <span className="inline-flex items-center gap-2 text-sm font-medium text-blue-700">
                 <ShieldCheck className="size-4" />
-                Article 19-A Driver Qualification Records
+                19-A Compliance Software
               </span>
               <h1 className="mt-4 text-4xl leading-[1.08] font-extrabold tracking-tight text-balance text-neutral-900 sm:text-5xl">
                 Simplify 19-A Compliance.
@@ -97,8 +97,8 @@ export default function Article19APage() {
                 <span className="text-blue-600">Stay RoadReady.</span>
               </h1>
               <p className="mt-5 max-w-md text-base text-neutral-600 text-pretty sm:text-lg">
-                Keep every driver&apos;s file, the nine required compliance forms and every expiration date in one
-                place — so nothing is found missing during an audit.
+                RoadReady is software that keeps every driver&apos;s file, the nine required compliance forms and
+                every expiration date in one place — so nothing is found missing during an audit.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <TrackedLink

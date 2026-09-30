@@ -35,7 +35,7 @@ gtag('config', '${GA_MEASUREMENT_ID}');`}
             <ShieldCheck className="size-7 text-blue-600" />
             <span className="leading-tight">
               <span className="block text-[15px] font-extrabold tracking-tight text-neutral-900">ROADREADY</span>
-              <span className="block text-[10px] font-semibold tracking-widest text-neutral-500">COMPLIANCE</span>
+              <span className="block text-[10px] font-semibold tracking-widest text-neutral-500">COMPLIANCE SOFTWARE</span>
             </span>
           </Link>
           <div className="flex items-center gap-3">
