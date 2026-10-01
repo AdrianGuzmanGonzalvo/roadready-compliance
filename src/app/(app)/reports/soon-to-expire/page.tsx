@@ -176,7 +176,7 @@ export default function SoonToExpireReportPage() {
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             <label className="text-xs text-neutral-500">Due date</label>
             <Input type="date" value={dueFrom} onChange={(e) => setDueFrom(e.target.value)} className="w-[145px]" />
             <span className="text-neutral-300">–</span>

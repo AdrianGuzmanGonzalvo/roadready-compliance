@@ -24,7 +24,7 @@ export function CompanyRosterFilter() {
   if (companies.length === 0) return null;
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex shrink-0 items-center gap-1.5">
       <Building2 className="size-4 text-neutral-400 hidden sm:block" />
       <Select
         value={companyFilter}

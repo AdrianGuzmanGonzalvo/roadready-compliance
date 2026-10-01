@@ -28,8 +28,8 @@ export function TopBar() {
   ).length;
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-neutral-200 bg-white/90 px-4 backdrop-blur md:px-6 print:hidden">
-      <div className="relative flex-1 max-w-sm">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-neutral-200 bg-white/90 px-3 backdrop-blur sm:gap-4 sm:px-4 md:px-6 print:hidden">
+      <div className="relative min-w-0 flex-1 max-w-sm">
         <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
         <Input
           value={search}
@@ -41,7 +41,8 @@ export function TopBar() {
 
       <CompanyRosterFilter />
 
-      <div className="flex-1" />
+      {/* On phones the search box takes the free space instead of this spacer. */}
+      <div className="hidden flex-1 sm:block" />
 
       {expiredCount > 0 && (
         <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
@@ -53,13 +54,17 @@ export function TopBar() {
       {canEdit && (
         <Button
           size="sm"
+          title="Upload New Excel"
+          aria-label="Upload New Excel"
+          className="shrink-0"
           onClick={() => {
             trackEvent("modal_opened", { modal: "upload_excel", location: "topbar" });
             setUploadOpen(true);
           }}
         >
           <UploadCloud className="size-4" />
-          Upload New Excel
+          {/* Icon-only on phones — the full label pushed the bar wider than the screen. */}
+          <span className="hidden sm:inline">Upload New Excel</span>
         </Button>
       )}
     </header>
