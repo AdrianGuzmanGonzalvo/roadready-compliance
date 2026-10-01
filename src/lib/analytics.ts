@@ -17,6 +17,7 @@ import type { SessionUserDTO, UserRole } from "@/types/user";
 import type { ReportScheduleFrequency } from "@/types/report-schedule";
 import type { KpiStatusFilter } from "@/store/ui-store";
 import type { ScorecardView } from "@/components/dashboard-new/scorecard-data";
+import type { OverviewView } from "@/lib/overview";
 
 declare global {
   interface Window {
@@ -54,7 +55,12 @@ export type ModalLocation =
   | "users_card"
   | "forms_card";
 
-export type DriverOpenSource = "driver_table" | "expiration_matrix" | "scorecard" | "soon_to_expire_report";
+export type DriverOpenSource =
+  | "driver_table"
+  | "expiration_matrix"
+  | "scorecard"
+  | "soon_to_expire_report"
+  | "overview_action_center";
 
 export type FilterName =
   | "driver_status_tab"
@@ -81,6 +87,7 @@ export interface AnalyticsEvents {
   driver_opened: { source: DriverOpenSource; scorecard_view?: ScorecardView };
   kpi_card_clicked: { kpi: KpiStatusFilter; dashboard: "classic" | "new"; active: boolean };
   scorecard_view_changed: { view: ScorecardView };
+  overview_view_changed: { view: OverviewView };
   /** `value` must be an enum-like value (use `formKeyForAnalytics` for form keys) — never free text. */
   filter_changed: { filter: FilterName; value: string; location: FilterLocation };
   filters_reset: { location: FilterLocation };
