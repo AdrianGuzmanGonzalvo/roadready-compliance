@@ -15,7 +15,7 @@ const KPI_FILTER_LABEL: Record<string, string> = {
   expiring_60: "Expiring in 60 Days",
 };
 
-export default function DashboardPage() {
+export default function CalendarPage() {
   const { data: drivers, isLoading, isError } = useDrivers();
   const companyFilter = useUIStore((s) => s.companyFilter);
   const rosterFilter = useUIStore((s) => s.rosterFilter);

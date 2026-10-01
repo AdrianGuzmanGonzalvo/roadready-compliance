@@ -62,6 +62,13 @@ skills-lock.json
 *.xlsx
 *.docx
 /Data/
+/DRIVING.txt
+/Aleksandr Kazarin.txt
+
+# marketing material and working copies kept beside the code (includes a leads email list);
+# the PDF the app actually serves lives in public/pdf-templates/
+/Flyer/
+/Forms/
 
 
 /src/generated/prisma

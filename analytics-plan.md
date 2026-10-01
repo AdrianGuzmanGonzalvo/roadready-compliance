@@ -78,7 +78,7 @@ La app guarda PII de conductores (nombres, licencias, SSN, teléfonos). Reglas o
 | ¿Cuántos intentos de login fallan? | `login_submitted` |
 | ¿Los tenants nuevos se activan (importan roster, crean empresas, programan reportes, invitan usuarios)? | `driver_import_completed`, `company_created`, `report_schedule_created`, `user_created` |
 | ¿Se mantienen al día los expedientes de cumplimiento? | `driver_opened`, `driver_updated.form_dates_changed`, `document_uploaded` |
-| ¿Se adopta el Dashboard (New) frente al clásico? ¿Qué vista de scorecard prefieren? | `page_view` (`/dashboard-new` vs `/`), `kpi_card_clicked.dashboard`, `driver_opened.scorecard_view`, `scorecard_view_changed` |
+| ¿Se adopta el Dashboard (New) frente al clásico? ¿Qué vista de scorecard prefieren? | `page_view` (`/dashboard-new` vs `/calendar`), `kpi_card_clicked.dashboard`, `driver_opened.scorecard_view`, `scorecard_view_changed` |
 | ¿Cuál de las 3 propuestas de Overview se usa más? | `page_view` (`/overview`), `overview_view_changed` |
 | ¿Desde dónde abren a un conductor? | `driver_opened.source` |
 | ¿Qué formatos de exportación se usan y con cuántas filas? | `report_exported` |
