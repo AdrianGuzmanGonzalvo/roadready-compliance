@@ -16,6 +16,13 @@ import { useFormFieldDefs } from "@/hooks/use-form-labels";
 import { useCanEdit } from "@/hooks/use-auth";
 import { formKeyForAnalytics, trackEvent } from "@/lib/analytics";
 
+const STATUS_TABS = [
+  { value: "ACTIVE", label: "Active Drivers", short: "Active" },
+  { value: "INACTIVE", label: "Inactive Drivers", short: "Inactive" },
+  { value: "TERMINATED", label: "Terminated Drivers", short: "Terminated" },
+  { value: "ALL", label: "All Records", short: "All" },
+];
+
 interface DriverFiltersProps {
   filteredCount: number;
   totalCount: number;
@@ -45,12 +52,16 @@ export function DriverFilters({ filteredCount, totalCount, onExportXlsx, onExpor
             trackEvent("filter_changed", { filter: "driver_status_tab", value: v, location: "drivers_list" });
             setStatusTab(v as typeof statusTab);
           }}
+          className="w-full sm:w-auto"
         >
-          <TabsList>
-            <TabsTrigger value="ACTIVE">Active Drivers</TabsTrigger>
-            <TabsTrigger value="INACTIVE">Inactive Drivers</TabsTrigger>
-            <TabsTrigger value="TERMINATED">Terminated Drivers</TabsTrigger>
-            <TabsTrigger value="ALL">All Records</TabsTrigger>
+          {/* On phones the four tabs share the row with short labels instead of running off the screen. */}
+          <TabsList className="grid w-full grid-cols-4 sm:inline-flex sm:w-auto">
+            {STATUS_TABS.map((t) => (
+              <TabsTrigger key={t.value} value={t.value} className="px-1 text-xs sm:px-3 sm:text-sm">
+                <span className="sm:hidden">{t.short}</span>
+                <span className="hidden sm:inline">{t.label}</span>
+              </TabsTrigger>
+            ))}
           </TabsList>
         </Tabs>
 

@@ -31,9 +31,9 @@ function RiskKpi({
 }) {
   return (
     <Card>
-      <CardContent className="flex items-start justify-between p-4">
+      <CardContent className="flex items-start justify-between gap-2 p-3 sm:p-4">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-neutral-500">{label}</p>
+          <p className="text-xs font-medium text-neutral-500 sm:text-sm">{label}</p>
           <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <p className="text-2xl font-semibold text-neutral-900">{value.toLocaleString()}</p>
             {risk ? (
@@ -50,7 +50,8 @@ function RiskKpi({
             )}
           </div>
         </div>
-        <div className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", accent)}>
+        {/* The icon is dropped on phones so two cards fit side by side. */}
+        <div className={cn("hidden size-9 shrink-0 items-center justify-center rounded-lg sm:flex", accent)}>
           <Icon className="size-4.5" />
         </div>
       </CardContent>
@@ -87,7 +88,7 @@ export function RiskTimelineView({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <RiskKpi
           icon={Users}
           label="Total Drivers"
@@ -153,29 +154,32 @@ export function RiskTimelineView({
             ))}
           </div>
 
-          <table className="sr-only">
-            <caption>Active drivers by form and status</caption>
-            <thead>
-              <tr>
-                <th scope="col">Form</th>
-                {RISK_ORDER.map((s) => (
-                  <th key={s} scope="col">
-                    {RISK_LABEL[s]}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {forms.map((f) => (
-                <tr key={f.key}>
-                  <th scope="row">{f.label}</th>
+          {/* sr-only goes on a wrapper: a table ignores the 1px width and would widen the page. */}
+          <div className="sr-only">
+            <table>
+              <caption>Active drivers by form and status</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Form</th>
                   {RISK_ORDER.map((s) => (
-                    <td key={s}>{f.counts[s]}</td>
+                    <th key={s} scope="col">
+                      {RISK_LABEL[s]}
+                    </th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {forms.map((f) => (
+                  <tr key={f.key}>
+                    <th scope="row">{f.label}</th>
+                    {RISK_ORDER.map((s) => (
+                      <td key={s}>{f.counts[s]}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </ChartCard>
 
         <ChartCard

@@ -114,7 +114,11 @@ export default function DashboardNewPage() {
               <p className="text-xs text-neutral-400">Click a card to view or update a driver&apos;s compliance dates.</p>
             </div>
 
-            <div className="inline-flex rounded-lg border border-neutral-200 bg-neutral-50 p-1" role="tablist" aria-label="Scorecard view">
+            <div
+              className="inline-flex max-w-full overflow-x-auto rounded-lg border border-neutral-200 bg-neutral-50 p-1"
+              role="tablist"
+              aria-label="Scorecard view"
+            >
               {SCORECARD_VIEWS.map((v) => (
                 <button
                   key={v.value}
@@ -122,7 +126,7 @@ export default function DashboardNewPage() {
                   aria-selected={view === v.value}
                   onClick={() => handleViewChange(v.value)}
                   className={cn(
-                    "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+                    "shrink-0 rounded-md px-2 py-1.5 text-xs font-semibold transition-colors sm:px-3",
                     view === v.value ? "bg-white text-blue-600 shadow-sm" : "text-neutral-500 hover:text-neutral-800"
                   )}
                 >

@@ -132,20 +132,23 @@ export function AreaChart({ points, unit, caption }: { points: AreaPoint[]; unit
           ))}
         </div>
 
-        <table className="sr-only">
-          <caption>{caption}</caption>
-          <tbody>
-            {points.map((p) => (
-              <tr key={p.key}>
-                <th scope="row">{p.title}</th>
-                <td>
-                  {p.value} {unit}
-                  {p.detail ? ` (${p.detail})` : ""}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {/* sr-only goes on a wrapper: a table ignores the 1px width and would widen the page. */}
+        <div className="sr-only">
+          <table>
+            <caption>{caption}</caption>
+            <tbody>
+              {points.map((p) => (
+                <tr key={p.key}>
+                  <th scope="row">{p.title}</th>
+                  <td>
+                    {p.value} {unit}
+                    {p.detail ? ` (${p.detail})` : ""}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
