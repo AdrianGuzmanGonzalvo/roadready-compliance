@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import type { ComplianceStatus } from "@/lib/compliance";
 
 /** Stroke twins of STATUS_SOLID_CLASS, for SVG arcs. */
@@ -24,6 +25,7 @@ export function SegmentedRing({
   size,
   thickness,
   label,
+  className,
   children,
 }: {
   segments: RingSegment[];
@@ -31,6 +33,8 @@ export function SegmentedRing({
   thickness: number;
   /** Text alternative for the whole ring. */
   label: string;
+  /** Width classes for a ring that resizes by breakpoint; `size` then only sets its proportions. */
+  className?: string;
   children?: ReactNode;
 }) {
   const radius = (size - thickness) / 2;
@@ -48,8 +52,13 @@ export function SegmentedRing({
   }, []);
 
   return (
-    <div className="relative shrink-0" style={{ width: size, height: size }} role="img" aria-label={label}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90" fill="none" aria-hidden>
+    <div
+      className={cn("relative aspect-square shrink-0", className)}
+      style={className ? undefined : { width: size }}
+      role="img"
+      aria-label={label}
+    >
+      <svg viewBox={`0 0 ${size} ${size}`} className="size-full -rotate-90" fill="none" aria-hidden>
         <circle cx={size / 2} cy={size / 2} r={radius} className="stroke-neutral-100" strokeWidth={thickness} />
         {arcs.map((a) => (
           <circle

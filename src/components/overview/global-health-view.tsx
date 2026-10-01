@@ -138,8 +138,9 @@ export function GlobalHealthView({ active, formFieldDefs }: { active: DriverDTO[
           {forms.map((f) => (
             <div key={f.key} className="flex min-w-0 flex-col items-center text-center">
               <SegmentedRing
-                size={60}
-                thickness={7}
+                size={76}
+                thickness={8}
+                className="w-18 sm:w-20 2xl:w-26"
                 label={
                   f.validPct === null
                     ? `${f.label}: no dates on file`
@@ -151,22 +152,29 @@ export function GlobalHealthView({ active, formFieldDefs }: { active: DriverDTO[
                   strokeClass: STATUS_STROKE_CLASS[s],
                 }))}
               >
-                <span className="text-xs font-bold text-neutral-900">{f.validPct === null ? "—" : `${f.validPct}%`}</span>
+                <span className="text-sm font-bold text-neutral-900 2xl:text-xl">
+                  {f.validPct === null ? "—" : `${f.validPct}%`}
+                </span>
               </SegmentedRing>
-              <p className="mt-1.5 max-w-full truncate text-xs font-semibold text-neutral-900" title={f.description}>
+              <p
+                className="mt-2 max-w-full truncate text-xs font-semibold text-neutral-900 2xl:text-sm"
+                title={f.description}
+              >
                 {f.label}
               </p>
               {f.onFile > 0 ? (
-                <p className="text-[11px] leading-snug text-neutral-500">
+                <p className="text-[11px] leading-snug text-neutral-500 2xl:text-xs">
                   {f.counts.expired} expired
                   <br />
                   {f.counts.expiring_30} due ≤30d
                 </p>
               ) : (
-                <p className="text-[11px] leading-snug text-neutral-400">No dates on file</p>
+                <p className="text-[11px] leading-snug text-neutral-400 2xl:text-xs">No dates on file</p>
               )}
               {f.onFile > 0 && f.counts.missing > 0 && (
-                <p className="text-[11px] leading-snug text-neutral-400">{f.counts.missing} no date</p>
+                <p className="text-[11px] leading-snug text-neutral-400 2xl:text-xs">
+                  {f.counts.missing} no date
+                </p>
               )}
             </div>
           ))}
