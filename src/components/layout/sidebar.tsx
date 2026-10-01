@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, LayoutGrid, Users, Building2, UploadCloud, FileBarChart, FileText, Settings, ShieldCheck, LogOut } from "lucide-react";
+import { CalendarDays, LayoutGrid, ChartPie, Users, Building2, UploadCloud, FileBarChart, FileText, Settings, ShieldCheck, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/ui-store";
 import { useCanEdit } from "@/hooks/use-auth";
 import { resetAnalytics, trackEvent } from "@/lib/analytics";
 
 const navItems = [
-  { href: "/dashboard-new", label: "Dashboard", icon: LayoutGrid, badge: "NEW" },
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/overview", label: "Overview", icon: ChartPie, badge: "NEW" },
+  { href: "/dashboard-new", label: "Dashboard", icon: LayoutGrid },
+  { href: "/", label: "Calendar", icon: CalendarDays },
   { href: "/drivers?status=ALL", label: "Drivers", icon: Users, match: "/drivers" },
   { href: "/companies", label: "Companies", icon: Building2 },
   { href: "/reports", label: "Reports", icon: FileBarChart, match: "/reports" },
