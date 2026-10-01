@@ -32,18 +32,22 @@ export function UserDialog({
   const isEditing = !!user;
   const pending = createUser.isPending || updateUser.isPending;
 
-  const [username, setUsername] = React.useState("");
+  const [username, setUsername] = React.useState(user?.username ?? "");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
-  const [role, setRole] = React.useState<UserRole>("USER");
+  const [role, setRole] = React.useState<UserRole>(user?.role ?? "USER");
 
-  React.useEffect(() => {
-    if (!open) return;
-    setUsername(user?.username ?? "");
-    setPassword("");
-    setConfirmPassword("");
-    setRole(user?.role ?? "USER");
-  }, [open, user]);
+  // Start from the user's saved values, with empty passwords, each time the dialog opens (or is pointed at another user).
+  const [shown, setShown] = React.useState({ open, user });
+  if (shown.open !== open || shown.user !== user) {
+    setShown({ open, user });
+    if (open) {
+      setUsername(user?.username ?? "");
+      setPassword("");
+      setConfirmPassword("");
+      setRole(user?.role ?? "USER");
+    }
+  }
 
   const passwordMismatch = password.length > 0 && password !== confirmPassword;
   const canSave = isEditing

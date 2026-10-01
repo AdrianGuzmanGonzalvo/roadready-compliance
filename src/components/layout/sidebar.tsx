@@ -11,7 +11,7 @@ import { resetAnalytics, trackEvent } from "@/lib/analytics";
 const navItems = [
   { href: "/overview", label: "Overview", icon: ChartPie, badge: "NEW" },
   { href: "/dashboard-new", label: "Dashboard", icon: LayoutGrid },
-  { href: "/", label: "Calendar", icon: CalendarDays },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/drivers?status=ALL", label: "Drivers", icon: Users, match: "/drivers" },
   { href: "/companies", label: "Companies", icon: Building2 },
   { href: "/reports", label: "Reports", icon: FileBarChart, match: "/reports" },

@@ -92,9 +92,12 @@ function BuiltInFormRow({
 
   const [values, setValues] = React.useState(initial);
 
-  React.useEffect(() => {
+  // Pick up the saved values whenever they change underneath the row (after a save or a reset).
+  const [syncedFrom, setSyncedFrom] = React.useState(initial);
+  if (syncedFrom !== initial) {
+    setSyncedFrom(initial);
     setValues(initial);
-  }, [initial]);
+  }
 
   const defaults = { label: defaultLabel, description: defaultDescription, frequency: defaultFrequency };
   const dirty =
@@ -179,9 +182,12 @@ function CustomFormRow({ form }: { form: FormFieldDef }) {
   );
   const [values, setValues] = React.useState(initial);
 
-  React.useEffect(() => {
+  // Pick up the saved values whenever they change underneath the row (after a save).
+  const [syncedFrom, setSyncedFrom] = React.useState(initial);
+  if (syncedFrom !== initial) {
+    setSyncedFrom(initial);
     setValues(initial);
-  }, [initial]);
+  }
 
   const dirty =
     values.label !== initial.label || values.description !== initial.description || values.frequency !== initial.frequency;
@@ -271,12 +277,16 @@ function AddFormDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
   const [description, setDescription] = React.useState("");
   const [frequency, setFrequency] = React.useState("");
 
-  React.useEffect(() => {
-    if (!open) return;
-    setLabel("");
-    setDescription("");
-    setFrequency("");
-  }, [open]);
+  // Start blank each time the dialog opens.
+  const [wasOpen, setWasOpen] = React.useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
+    if (open) {
+      setLabel("");
+      setDescription("");
+      setFrequency("");
+    }
+  }
 
   function handleCreate() {
     if (!label.trim()) return;

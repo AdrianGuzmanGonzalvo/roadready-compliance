@@ -55,10 +55,12 @@ export function AddDriverDialog() {
     });
   }
 
-  React.useEffect(() => {
+  // Start blank (pre-filled with the current company/roster scope) each time the dialog opens.
+  const [wasOpen, setWasOpen] = React.useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
     if (open) reset();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }
 
   function handleCreate() {
     if (!fields.lastName.trim() || !fields.firstName.trim()) return;

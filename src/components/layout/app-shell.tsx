@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, ChartPie, Users, Building2, FileBarChart, FileText, Settings } from "lucide-react";
+import { CalendarDays, ChartPie, LayoutGrid, Users, Building2, FileBarChart, FileText, Settings } from "lucide-react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/topbar";
 import { UploadDialog } from "@/components/upload/upload-dialog";
@@ -14,7 +14,8 @@ import { cn } from "@/lib/utils";
 
 const mobileNav = [
   { href: "/overview", label: "Overview", icon: ChartPie },
-  { href: "/", label: "Calendar", icon: CalendarDays },
+  { href: "/dashboard-new", label: "Dashboard", icon: LayoutGrid },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/drivers?status=ALL", label: "Drivers", icon: Users, match: "/drivers" },
   { href: "/companies", label: "Companies", icon: Building2 },
   { href: "/reports", label: "Reports", icon: FileBarChart, match: "/reports" },
@@ -30,7 +31,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <div className="flex flex-1 flex-col min-w-0">
         <TopBar />
-        <nav className="flex md:hidden items-center justify-around border-b border-neutral-200 bg-white h-12 print:hidden">
+        {/* justify-between (not around) so that on very narrow phones the row scrolls from its start instead of clipping. */}
+        <nav className="flex md:hidden items-center justify-between gap-1 overflow-x-auto px-2 border-b border-neutral-200 bg-white h-12 print:hidden">
           {mobileNav.map((item) => {
             const Icon = item.icon;
             const active = item.match ? pathname.startsWith(item.match) : pathname === item.href;
@@ -39,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.label}
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center gap-0.5 text-[10px] font-medium",
+                  "flex shrink-0 flex-col items-center gap-0.5 text-[10px] font-medium",
                   active ? "text-neutral-900" : "text-neutral-400"
                 )}
               >

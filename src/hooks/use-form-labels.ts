@@ -34,7 +34,7 @@ export function useFormLabelOverrides() {
 export function useFormFieldDefs(): FormFieldDef[] {
   const { data } = useFormLabels();
   const overrides = data?.overrides;
-  const customForms = data?.customForms ?? [];
+  const customForms = data?.customForms;
   return React.useMemo(() => {
     const builtIn: FormFieldDef[] = FORM_FIELD_DEFS.map((f) => {
       const o = overrides?.[f.key];
@@ -46,7 +46,7 @@ export function useFormFieldDefs(): FormFieldDef[] {
         isCustom: false,
       };
     });
-    return [...builtIn, ...customForms];
+    return [...builtIn, ...(customForms ?? [])];
   }, [overrides, customForms]);
 }
 

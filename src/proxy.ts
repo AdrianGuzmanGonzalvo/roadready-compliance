@@ -11,15 +11,18 @@ export const config = {
 
 export function proxy(req: NextRequest) {
   const token = req.cookies.get(SESSION_COOKIE)?.value;
-  if (verifySessionToken(token)) return NextResponse.next();
+  if (verifySessionToken(token)) {
+    // No app page lives at "/" — signed-in visitors to the bare domain land on Overview.
+    if (req.nextUrl.pathname === "/") return NextResponse.redirect(new URL("/overview", req.url));
+    return NextResponse.next();
+  }
 
   if (req.nextUrl.pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   // Signed-out visitors to the root URL see the public marketing page
-  // instead of being bounced to /login — the Dashboard only lives at "/"
-  // once a session exists. The URL bar still shows "/".
+  // instead of being bounced to /login. The URL bar still shows "/".
   if (req.nextUrl.pathname === "/") {
     return NextResponse.rewrite(new URL("/19a-compliance", req.url));
   }
