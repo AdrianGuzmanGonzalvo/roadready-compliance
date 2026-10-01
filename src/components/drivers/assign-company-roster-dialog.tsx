@@ -31,12 +31,15 @@ export function AssignCompanyRosterDialog({
   const [roster, setRoster] = React.useState("");
   const count = driverIds.length;
 
-  React.useEffect(() => {
+  // Start with no selection each time the dialog opens.
+  const [wasOpen, setWasOpen] = React.useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
     if (open) {
       setCompany("");
       setRoster("");
     }
-  }, [open]);
+  }
 
   function handleApply() {
     if (count === 0) return;

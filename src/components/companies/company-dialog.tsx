@@ -17,15 +17,17 @@ import { useCreateCompany, useUpdateCompany } from "@/hooks/use-companies";
 import { trackEvent } from "@/lib/analytics";
 import type { CompanyDTO } from "@/types/company";
 
-const EMPTY = {
-  name: "",
-  address: "",
-  contactName: "",
-  contactPhone: "",
-  contactEmail: "",
-  notes: "",
-  rosters: "",
-};
+function fieldsFor(company?: CompanyDTO | null) {
+  return {
+    name: company?.name ?? "",
+    address: company?.address ?? "",
+    contactName: company?.contactName ?? "",
+    contactPhone: company?.contactPhone ?? "",
+    contactEmail: company?.contactEmail ?? "",
+    notes: company?.notes ?? "",
+    rosters: "",
+  };
+}
 
 export function CompanyDialog({
   open,
@@ -41,20 +43,14 @@ export function CompanyDialog({
   const isEditing = !!company;
   const pending = createCompany.isPending || updateCompany.isPending;
 
-  const [fields, setFields] = React.useState(EMPTY);
+  const [fields, setFields] = React.useState(() => fieldsFor(company));
 
-  React.useEffect(() => {
-    if (!open) return;
-    setFields({
-      name: company?.name ?? "",
-      address: company?.address ?? "",
-      contactName: company?.contactName ?? "",
-      contactPhone: company?.contactPhone ?? "",
-      contactEmail: company?.contactEmail ?? "",
-      notes: company?.notes ?? "",
-      rosters: "",
-    });
-  }, [open, company]);
+  // Start from the company's saved values each time the dialog opens (or is pointed at another company).
+  const [shown, setShown] = React.useState({ open, company });
+  if (shown.open !== open || shown.company !== company) {
+    setShown({ open, company });
+    if (open) setFields(fieldsFor(company));
+  }
 
   function handleSave() {
     if (!fields.name.trim()) return;

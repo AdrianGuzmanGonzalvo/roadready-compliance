@@ -45,9 +45,16 @@ export default function DriversPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
 
-  useEffect(() => {
+  // A selection only makes sense within the list it was made in — clear it when the scope changes.
+  const [selectionScope, setSelectionScope] = useState({ statusTab, companyFilter, rosterFilter });
+  if (
+    selectionScope.statusTab !== statusTab ||
+    selectionScope.companyFilter !== companyFilter ||
+    selectionScope.rosterFilter !== rosterFilter
+  ) {
+    setSelectionScope({ statusTab, companyFilter, rosterFilter });
     setSelectedIds(new Set());
-  }, [statusTab, companyFilter, rosterFilter]);
+  }
 
   const scoped = useMemo(
     () => (drivers ? filterByCompanyRoster(drivers, companyFilter, rosterFilter) : []),
