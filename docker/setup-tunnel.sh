@@ -9,11 +9,22 @@ set -eu
 cd "$(dirname "$0")/.."
 name=roadready
 
-if ! cloudflared tunnel info "$name" > /dev/null 2>&1; then
-  cloudflared tunnel create "$name"
+# Run cloudflared with a config of its own: by default it reads
+# ~/.cloudflared/config.yml, which on this server belongs to another site's
+# tunnel, and `tunnel info <name>` then answers about that tunnel instead.
+cfg=$(mktemp)
+trap 'rm -f "$cfg"' EXIT
+echo "no-autoupdate: true" > "$cfg"
+tunnel_id() {
+  cloudflared tunnel --config "$cfg" list --name "$name" --output json 2> /dev/null | jq -r '.[0].id // empty'
+}
+
+id=$(tunnel_id)
+if [ -z "$id" ]; then
+  cloudflared tunnel --config "$cfg" create "$name"
+  id=$(tunnel_id)
 fi
-id=$(cloudflared tunnel list --name "$name" --output json | jq -r '.[0].id')
-[ -n "$id" ] && [ "$id" != "null" ] || { echo "could not read the tunnel id"; exit 1; }
+[ -n "$id" ] || { echo "could not read the tunnel id"; exit 1; }
 
 mkdir -p cloudflared
 cp "$HOME/.cloudflared/$id.json" cloudflared/credentials.json
