@@ -1,6 +1,5 @@
 "use client";
 
-import { upload } from "@vercel/blob/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { DocumentDTO } from "@/types/driver";
 import { useCurrentUser } from "@/hooks/use-auth";
@@ -11,12 +10,16 @@ export function useUploadDriverDocument() {
   return useMutation({
     mutationFn: async ({ driverId, file, label }: { driverId: string; file: File; label: string }) => {
       if (!currentUser) throw new Error("Not signed in");
-      const pathname = `${currentUser.tenantCode}/drivers/${driverId}/${crypto.randomUUID()}-${file.name}`;
 
-      const blob = await upload(pathname, file, {
-        access: "private",
-        handleUploadUrl: `/api/drivers/${driverId}/documents/upload`,
-      });
+      const uploadRes = await fetch(
+        `/api/drivers/${driverId}/documents/upload?filename=${encodeURIComponent(file.name)}`,
+        { method: "POST", headers: { "Content-Type": file.type || "application/octet-stream" }, body: file }
+      );
+      if (!uploadRes.ok) {
+        const body = await uploadRes.json().catch(() => null);
+        throw new Error(body?.error ?? "Failed to upload document");
+      }
+      const { pathname } = (await uploadRes.json()) as { pathname: string };
 
       const res = await fetch(`/api/drivers/${driverId}/documents`, {
         method: "POST",
@@ -24,7 +27,7 @@ export function useUploadDriverDocument() {
         body: JSON.stringify({
           label,
           filename: file.name,
-          pathname: blob.pathname,
+          pathname,
           contentType: file.type || null,
           size: file.size,
         }),

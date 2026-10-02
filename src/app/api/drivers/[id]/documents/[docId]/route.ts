@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { del } from "@vercel/blob";
 import { requireWriteAccess } from "@/lib/auth";
+import { deleteDocument } from "@/lib/document-storage";
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string; docId: string }> }) {
   const user = await requireWriteAccess();
@@ -12,7 +12,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Document not found" }, { status: 404 });
   }
 
-  await del(document.pathname).catch(() => null);
+  await deleteDocument(document.pathname).catch(() => null);
   await user.db.driverDocument.delete({ where: { id: docId } });
 
   return NextResponse.json({ ok: true });

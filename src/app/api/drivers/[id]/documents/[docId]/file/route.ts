@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { get } from "@vercel/blob";
 import { getSessionUser } from "@/lib/auth";
+import { documentContentType, openDocument } from "@/lib/document-storage";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string; docId: string }> }) {
   const user = await getSessionUser();
@@ -12,14 +12,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Document not found" }, { status: 404 });
   }
 
-  const result = await get(document.pathname, { access: "private" });
-  if (!result || result.statusCode !== 200 || !result.stream) {
-    return NextResponse.json({ error: "File not found in storage" }, { status: 404 });
-  }
+  const file = await openDocument(document.pathname);
+  if (!file) return NextResponse.json({ error: "File not found in storage" }, { status: 404 });
 
-  return new NextResponse(result.stream, {
+  return new NextResponse(file.stream, {
     headers: {
-      "Content-Type": document.contentType ?? result.blob.contentType,
+      "Content-Type": documentContentType(document.filename, document.contentType) ?? "application/octet-stream",
+      "Content-Length": String(file.size),
       "X-Content-Type-Options": "nosniff",
       "Content-Disposition": `inline; filename="${document.filename.replace(/"/g, "")}"`,
       "Cache-Control": "private, no-cache",

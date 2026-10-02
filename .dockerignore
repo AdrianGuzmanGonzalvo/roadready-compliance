@@ -1,0 +1,34 @@
+.git
+.next
+node_modules
+src/generated
+
+# secrets
+.env*
+!.env.example
+Turso.txt
+*.token
+*token*.txt
+
+# local databases, stored documents and backups
+prisma/*.db
+prisma/*.db-journal
+prisma/tenants
+storage
+backups
+
+# source data and marketing material kept beside the code (contains PII)
+*.xlsx
+*.docx
+Data
+Flyer
+Forms
+DRIVING.txt
+Aleksandr Kazarin.txt
+
+# tooling
+.agents
+.claude
+.vercel
+.windsurf
+*.tsbuildinfo

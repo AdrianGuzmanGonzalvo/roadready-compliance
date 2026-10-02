@@ -58,6 +58,10 @@ skills-lock.json
 # synthetic demo data bundled for the live deployment (no real PII)
 !/prisma/seed.db
 
+# uploaded driver documents (DOCUMENTS_DIR default) and their daily archives - PII
+/storage/
+/backups/
+
 # source data (contains PII - SSN, DOB, license #, phone)
 *.xlsx
 *.docx

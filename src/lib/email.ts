@@ -97,7 +97,7 @@ export function buildDemoRequestConfirmationHtml(params: { name: string; contact
       }
     </p>
     <p style="margin-top:24px;font-size:11px;color:#aaa;border-top:1px solid #eee;padding-top:10px;">
-      You're receiving this because you requested a demo at roadready-compliance.vercel.app/19a-compliance.
+      You're receiving this because you requested a demo at roadready-compliance.com.
     </p>
   </div>`;
 }

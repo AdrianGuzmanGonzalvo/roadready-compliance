@@ -67,6 +67,17 @@ Use the **Upload Excel** button (sidebar or top bar) to import a `.xlsx` workboo
 - `src/app/(dashboard, drivers, settings)` — pages
 - `src/components/` — UI
 
+## Deployment
+
+The app runs as a Docker container on a single server; nothing in it depends on a hosting platform.
+
+- **Run it:** put a `.env` beside `docker-compose.yml` (see `.env.example`), then `docker compose up -d --build`. The app listens on `127.0.0.1:3210` only (`APP_PORT` changes the port); a reverse proxy or tunnel on the same server publishes it.
+- **Deploy a new version:** `git pull --ff-only && docker compose up -d --build`. `docker compose ps` shows `healthy` once it answers.
+- **Driver documents** are files in the `documents` volume (`src/lib/document-storage.ts`), served only through the signed-in file route. Uploads are limited to 25 MB.
+- **Daily job** (`docker/daily.sh`, the `daily` container): at 13:00 UTC it triggers the scheduled report emails and writes an archive of the documents to `./backups`, keeping the last 7 days (`BACKUP_KEEP_DAYS`). Those archives are on the same disk as the documents — copy them off the server for a real backup.
+- **Maintenance scripts** run with the app's environment and documents volume: `docker compose run --rm tools npx tsx scripts/migrate-all-tenants.ts`.
+- **Moving the existing documents out of Vercel Blob** (one-off): add `BLOB_READ_WRITE_TOKEN` to `.env`, run `docker compose run --rm tools npx tsx scripts/copy-blob-documents.ts`, then remove the token. It can be run again; files already copied are skipped.
+
 ## Notes
 
 - SQLite database files (the control database and every tenant's database, local or under `prisma/tenants/`) and any imported `.xlsx` rosters are gitignored — they contain PII (SSNs, DOB, license numbers) and should not be committed or emailed unmasked.

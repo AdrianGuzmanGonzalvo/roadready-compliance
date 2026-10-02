@@ -1,0 +1,71 @@
+name: roadready
+
+x-build-args: &build-args
+  NEXT_PUBLIC_CONTACT_EMAIL: ${NEXT_PUBLIC_CONTACT_EMAIL:-}
+  NEXT_PUBLIC_CONTACT_PHONE: ${NEXT_PUBLIC_CONTACT_PHONE:-}
+  NEXT_PUBLIC_GA_ID: ${NEXT_PUBLIC_GA_ID:-}
+  NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
+  NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-}
+  NEXT_PUBLIC_ANALYTICS_ENDPOINT: ${NEXT_PUBLIC_ANALYTICS_ENDPOINT:-}
+  NEXT_PUBLIC_ANALYTICS_DEBUG: ${NEXT_PUBLIC_ANALYTICS_DEBUG:-}
+
+services:
+  app:
+    build:
+      context: .
+      args: *build-args
+    env_file: .env
+    environment:
+      DOCUMENTS_DIR: /data/documents
+    volumes:
+      - documents:/data/documents
+    # Only reachable from the server itself; the Cloudflare Tunnel publishes it.
+    ports:
+      - "127.0.0.1:${APP_PORT:-3210}:3000"
+    restart: unless-stopped
+    mem_limit: 1g
+    cpus: 1.5
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # Once a day: triggers the scheduled report emails and backs up the documents.
+  daily:
+    image: alpine:3.22
+    command: ["sh", "/daily.sh"]
+    environment:
+      CRON_SECRET: ${CRON_SECRET:?set CRON_SECRET in .env}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-7}
+    volumes:
+      - ./docker/daily.sh:/daily.sh:ro
+      - documents:/data/documents:ro
+      - ./backups:/backups
+    depends_on:
+      - app
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+
+  # Not started by `up`. Runs the maintenance scripts with the app's own
+  # environment and documents volume, e.g.:
+  #   docker compose run --rm tools npx tsx scripts/migrate-all-tenants.ts
+  tools:
+    profiles: ["tools"]
+    build:
+      context: .
+      target: build
+      args: *build-args
+    user: node
+    env_file: .env
+    environment:
+      DOCUMENTS_DIR: /data/documents
+    volumes:
+      - documents:/data/documents
+    mem_limit: 1g
+    cpus: 1.0
+
+volumes:
+  documents:

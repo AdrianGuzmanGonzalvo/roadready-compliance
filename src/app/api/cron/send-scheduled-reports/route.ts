@@ -9,7 +9,7 @@ import { buildSoonToExpireEmailHtml, sendReportEmail } from "@/lib/email";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const APP_URL = process.env.APP_URL ?? "https://roadready-compliance.vercel.app";
+const APP_URL = process.env.APP_URL ?? "https://roadready-compliance.com";
 
 function isDueToday(schedule: { frequency: string; dayOfWeek: number | null; dayOfMonth: number | null }, now: Date): boolean {
   if (schedule.frequency === "DAILY") return true;
