@@ -71,7 +71,7 @@ Use the **Upload Excel** button (sidebar or top bar) to import a `.xlsx` workboo
 
 The app runs as a Docker container on a single server; nothing in it depends on a hosting platform.
 
-- **Run it:** put a `.env` beside `docker-compose.yml` (see `.env.example`), then `docker compose up -d --build`. The app listens on `127.0.0.1:3210` only (`APP_PORT` changes the port); a reverse proxy or tunnel on the same server publishes it.
+- **Run it:** put a `.env` beside `docker-compose.yml` (see `.env.example`), run `sh docker/setup-tunnel.sh` once, then `docker compose up -d --build`. The app listens on `127.0.0.1:3210` only (`APP_PORT` changes the port); the `tunnel` service publishes it through RoadReady's own Cloudflare Tunnel. The setup script prints the `<id>.cfargotunnel.com` target that each hostname's proxied CNAME record in Cloudflare must point to.
 - **Deploy a new version:** `git pull --ff-only && docker compose up -d --build`. `docker compose ps` shows `healthy` once it answers.
 - **Driver documents** are files in the `documents` volume (`src/lib/document-storage.ts`), served only through the signed-in file route. Uploads are limited to 25 MB.
 - **Daily job** (`docker/daily.sh`, the `daily` container): at 13:00 UTC it triggers the scheduled report emails and writes an archive of the documents to `./backups`, keeping the last 7 days (`BACKUP_KEEP_DAYS`). Those archives are on the same disk as the documents — copy them off the server for a real backup.

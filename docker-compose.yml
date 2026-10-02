@@ -19,7 +19,7 @@ services:
       DOCUMENTS_DIR: /data/documents
     volumes:
       - documents:/data/documents
-    # Only reachable from the server itself; the Cloudflare Tunnel publishes it.
+    # Only reachable from the server itself; the `tunnel` service publishes it.
     ports:
       - "127.0.0.1:${APP_PORT:-3210}:3000"
     restart: unless-stopped
@@ -43,6 +43,21 @@ services:
       - ./docker/daily.sh:/daily.sh:ro
       - documents:/data/documents:ro
       - ./backups:/backups
+    depends_on:
+      - app
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+
+  # Publishes the app on the internet through RoadReady's own Cloudflare Tunnel.
+  # ./cloudflared/ (credentials + hostnames) is created once by docker/setup-tunnel.sh.
+  tunnel:
+    image: cloudflare/cloudflared:2026.9.1
+    command: ["tunnel", "--no-autoupdate", "--config", "/etc/cloudflared/config.yml", "run"]
+    # The credentials file belongs to the server user (uid 1000) and is private.
+    user: "1000:1000"
+    volumes:
+      - ./cloudflared:/etc/cloudflared:ro
     depends_on:
       - app
     restart: unless-stopped

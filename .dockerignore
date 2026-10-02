@@ -10,12 +10,15 @@ Turso.txt
 *.token
 *token*.txt
 
-# local databases, stored documents and backups
+# local databases, stored documents, backups, tunnel credentials, server files
 prisma/*.db
 prisma/*.db-journal
 prisma/tenants
 storage
 backups
+cloudflared
+*.log
+.containers-*.txt
 
 # source data and marketing material kept beside the code (contains PII)
 *.xlsx
