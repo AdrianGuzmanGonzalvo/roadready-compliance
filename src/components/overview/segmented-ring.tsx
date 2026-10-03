@@ -15,6 +15,8 @@ export interface RingSegment {
   key: string;
   value: number;
   strokeClass: string;
+  /** Shown when the pointer rests on this arc. */
+  title?: string;
 }
 
 const GAP = 2;
@@ -43,13 +45,16 @@ export function SegmentedRing({
   const total = visible.reduce((sum, s) => sum + s.value, 0);
   const gap = visible.length > 1 ? GAP : 0;
 
-  const arcs = visible.reduce<{ key: string; strokeClass: string; dash: number; start: number }[]>((acc, s) => {
-    const prev = acc[acc.length - 1];
-    const start = prev ? prev.start + prev.dash + gap : 0;
-    const dash = Math.max((s.value / total) * circumference - gap, 0.5);
-    acc.push({ key: s.key, strokeClass: s.strokeClass, dash, start });
-    return acc;
-  }, []);
+  const arcs = visible.reduce<{ key: string; strokeClass: string; title?: string; dash: number; start: number }[]>(
+    (acc, s) => {
+      const prev = acc[acc.length - 1];
+      const start = prev ? prev.start + prev.dash + gap : 0;
+      const dash = Math.max((s.value / total) * circumference - gap, 0.5);
+      acc.push({ key: s.key, strokeClass: s.strokeClass, title: s.title, dash, start });
+      return acc;
+    },
+    []
+  );
 
   return (
     <div
@@ -70,10 +75,15 @@ export function SegmentedRing({
             strokeWidth={thickness}
             strokeDasharray={`${a.dash} ${circumference - a.dash}`}
             strokeDashoffset={-a.start}
-          />
+          >
+            {a.title && <title>{a.title}</title>}
+          </circle>
         ))}
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">{children}</div>
+      {/* pointer-events-none: the centre text sits over the whole ring and would swallow the arcs' hover. */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+        {children}
+      </div>
     </div>
   );
 }

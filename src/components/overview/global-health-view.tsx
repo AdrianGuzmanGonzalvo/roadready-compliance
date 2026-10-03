@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { STATUS_SOLID_CLASS } from "@/components/dashboard-new/scorecard-data";
-import { ChartCard, StatusLegend } from "@/components/overview/chart-card";
+import { ChartCard, RISK_LABEL, StatusLegend } from "@/components/overview/chart-card";
 import { SegmentedRing, STATUS_STROKE_CLASS } from "@/components/overview/segmented-ring";
 import { summarizeFormExpiries, type ComplianceStatus } from "@/lib/compliance";
 import { fleetReadiness, formBreakdowns, percent } from "@/lib/overview";
@@ -18,6 +18,13 @@ const READY_GROUP: { status: ComplianceStatus; label: string }[] = [
   { status: "expiring_30", label: "Have a form due within 30 days" },
   { status: "expiring_60", label: "Have a form due in 31–60 days" },
   { status: "compliant", label: "All forms valid for 60+ days" },
+];
+
+/** Counts spelled out under each form's ring; "no date" only shows when there are any. */
+const FORM_STATS: { status: ComplianceStatus; label: string }[] = [
+  { status: "expired", label: "expired" },
+  { status: "expiring_30", label: "due ≤30d" },
+  { status: "missing", label: "no date" },
 ];
 
 const plural = (n: number, word: string) => `${n.toLocaleString()} ${word}${n === 1 ? "" : "s"}`;
@@ -133,14 +140,17 @@ export function GlobalHealthView({ active, formFieldDefs }: { active: DriverDTO[
         action={<StatusLegend />}
         className="lg:col-span-3"
       >
-        {/* One row of rings on wide screens, so the whole view fits without scrolling. */}
-        <div className="grid grid-cols-2 gap-x-3 gap-y-4 pt-1 sm:grid-cols-5 xl:grid-cols-10">
+        {/* Two rows of five on wide screens: one row made the rings too small to read comfortably. */}
+        <div className="grid grid-cols-2 gap-3 pt-1 lg:grid-cols-5">
           {forms.map((f) => (
-            <div key={f.key} className="flex min-w-0 flex-col items-center text-center">
+            <div
+              key={f.key}
+              className="flex min-w-0 flex-col items-center rounded-lg border border-neutral-200 px-2 py-4 text-center"
+            >
               <SegmentedRing
-                size={76}
-                thickness={8}
-                className="w-18 sm:w-20 2xl:w-26"
+                size={144}
+                thickness={15}
+                className="w-full max-w-36"
                 label={
                   f.validPct === null
                     ? `${f.label}: no dates on file`
@@ -150,31 +160,32 @@ export function GlobalHealthView({ active, formFieldDefs }: { active: DriverDTO[
                   key: s,
                   value: f.counts[s],
                   strokeClass: STATUS_STROKE_CLASS[s],
+                  title: `${f.label} — ${RISK_LABEL[s]}: ${f.counts[s]}`,
                 }))}
               >
-                <span className="text-sm font-bold text-neutral-900 2xl:text-xl">
+                <span className="text-2xl font-bold text-neutral-900 xl:text-3xl">
                   {f.validPct === null ? "—" : `${f.validPct}%`}
                 </span>
               </SegmentedRing>
-              <p
-                className="mt-2 max-w-full truncate text-xs font-semibold text-neutral-900 2xl:text-sm"
-                title={f.description}
-              >
+              <p className="mt-3 max-w-full truncate text-base font-semibold text-neutral-900" title={f.description}>
                 {f.label}
               </p>
               {f.onFile > 0 ? (
-                <p className="text-[11px] leading-snug text-neutral-500 2xl:text-xs">
-                  {f.counts.expired} expired
-                  <br />
-                  {f.counts.expiring_30} due ≤30d
-                </p>
+                <ul className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-0.5 text-sm text-neutral-500">
+                  {FORM_STATS.filter((s) => s.status !== "missing" || f.counts.missing > 0).map((s) => (
+                    <li key={s.status} className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                      <span className={cn("size-2 shrink-0 rounded-full", STATUS_SOLID_CLASS[s.status])} />
+                      <span>
+                        <span className="font-semibold tabular-nums text-neutral-900">
+                          {f.counts[s.status].toLocaleString()}
+                        </span>{" "}
+                        {s.label}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               ) : (
-                <p className="text-[11px] leading-snug text-neutral-400 2xl:text-xs">No dates on file</p>
-              )}
-              {f.onFile > 0 && f.counts.missing > 0 && (
-                <p className="text-[11px] leading-snug text-neutral-400 2xl:text-xs">
-                  {f.counts.missing} no date
-                </p>
+                <p className="mt-1 text-sm text-neutral-400">No dates on file</p>
               )}
             </div>
           ))}
