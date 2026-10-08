@@ -37,9 +37,10 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-lg font-medium text-neutral-900">Analytics and advertising</h2>
           <p className="mt-2">
-            This site may use Google Analytics 4 to understand which pages and advertisements bring visitors
-            here. It records usage data such as pages viewed and approximate location, and it records when a
-            demo request is submitted. It does not receive the contents of the form.
+            This site may use Google Analytics 4 and the Google Ads tag to understand which pages and
+            advertisements bring visitors here. They record usage data such as pages viewed and approximate
+            location, may set cookies to recognize a visit that came from an advertisement, and record when a
+            demo request is submitted. They do not receive the contents of the form.
           </p>
         </section>
 

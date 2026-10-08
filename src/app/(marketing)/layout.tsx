@@ -2,29 +2,29 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import Script from "next/script";
 import { ShieldCheck } from "lucide-react";
-import { CONTACT_EMAIL, GA_MEASUREMENT_ID } from "@/lib/marketing";
+import { CONTACT_EMAIL, GOOGLE_TAG_IDS } from "@/lib/marketing";
 import { PageViewTracker, TrackedLink } from "@/components/analytics/trackers";
 
 /**
  * Public (unauthenticated) pages: landing page and privacy policy.
- * GA4 is loaded ONLY here, never inside the signed-in application — src/lib/analytics.ts
- * forwards only marketing-surface events to it.
+ * The Google tag (GA4 and Google Ads) is loaded ONLY here, never inside the signed-in
+ * application — src/lib/analytics.ts forwards only marketing-surface events to it.
  */
 export default function MarketingLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-full flex-col bg-white text-neutral-900">
       <PageViewTracker surface="marketing" />
-      {GA_MEASUREMENT_ID ? (
+      {GOOGLE_TAG_IDS.length > 0 ? (
         <>
           <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+            src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_TAG_IDS[0]}`}
             strategy="afterInteractive"
           />
-          <Script id="ga4-init" strategy="afterInteractive">
+          <Script id="gtag-init" strategy="afterInteractive">
             {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', '${GA_MEASUREMENT_ID}');`}
+${GOOGLE_TAG_IDS.map((id) => `gtag('config', '${id}');`).join("\n")}`}
           </Script>
         </>
       ) : null}

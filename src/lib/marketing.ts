@@ -11,6 +11,12 @@ export const CONTACT_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE ?? "";
 /** GA4 measurement id (G-XXXXXXX). When unset, no analytics script is loaded at all. */
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID ?? "";
 
+/** Google Ads tag id (AW-XXXXXXX) of account 920-062-4144. Public, not a secret. */
+export const GOOGLE_ADS_TAG_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ?? "AW-18502174183";
+
+/** Every id the Google tag is configured with. Empty means no Google script is loaded at all. */
+export const GOOGLE_TAG_IDS = [GA_MEASUREMENT_ID, GOOGLE_ADS_TAG_ID].filter(Boolean);
+
 /**
  * The nine tracked compliance forms. These are the forms the application itself tracks -
  * keep this list in sync with the app, and do not add forms that are not supported.
