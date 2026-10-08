@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CONTACT_EMAIL } from "@/lib/marketing";
+import { CONTACT_EMAIL, GOOGLE_ADS_DEMO_CONVERSION } from "@/lib/marketing";
 import { trackEvent } from "@/lib/analytics";
 
 type Status = "idle" | "sending" | "sent" | "error";
@@ -40,6 +40,7 @@ export function DemoRequestForm() {
       }
       // Conversion signal for GA4 / Google Ads. Fires only after the server accepted the request.
       window.gtag?.("event", "generate_lead", { form: "demo_request" });
+      if (GOOGLE_ADS_DEMO_CONVERSION) window.gtag?.("event", "conversion", { send_to: GOOGLE_ADS_DEMO_CONVERSION });
       trackEvent("demo_request_submitted", { outcome: "success" });
       form.reset();
       setStatus("sent");

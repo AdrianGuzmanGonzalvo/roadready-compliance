@@ -14,6 +14,9 @@ export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID ?? "";
 /** Google Ads tag id (AW-XXXXXXX) of account 920-062-4144. Public, not a secret. */
 export const GOOGLE_ADS_TAG_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ?? "AW-18502174183";
 
+/** Google Ads conversion "Envío de formulario para clientes potenciales": an accepted demo request. */
+export const GOOGLE_ADS_DEMO_CONVERSION = GOOGLE_ADS_TAG_ID ? `${GOOGLE_ADS_TAG_ID}/sOmyCI_nh5YdEOeLw_ZE` : "";
+
 /** Every id the Google tag is configured with. Empty means no Google script is loaded at all. */
 export const GOOGLE_TAG_IDS = [GA_MEASUREMENT_ID, GOOGLE_ADS_TAG_ID].filter(Boolean);
 
