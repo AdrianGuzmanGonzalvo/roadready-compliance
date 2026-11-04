@@ -2,14 +2,32 @@
 # Runs inside the `daily` container (docker-compose.yml). Every day at 13:00 UTC
 # it calls the scheduled-reports route (the job Vercel Cron used to trigger) and
 # then writes a dated archive of the documents volume to /backups, keeping the
-# last BACKUP_KEEP_DAYS days.
+# last BACKUP_KEEP_DAYS days. It also moves the demo account's form dates along
+# (on start too, so a deploy shows them right away).
 set -u
+
+refresh_demo() {
+  for _ in 1 2 3 4 5 6 7 8; do
+    if wget -q -T 120 -O - --header "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/refresh-demo; then
+      echo
+      return 0
+    fi
+    sleep 15
+  done
+  echo "demo refresh call FAILED"
+}
+
+echo "$(date -u +%FT%TZ) refreshing the demo account"
+refresh_demo
 
 while :; do
   now=$(date -u +%s)
   next=$(( now - now % 86400 + 13 * 3600 ))
   [ "$next" -le "$now" ] && next=$(( next + 86400 ))
   sleep $(( next - now ))
+
+  echo "$(date -u +%FT%TZ) refreshing the demo account"
+  refresh_demo
 
   echo "$(date -u +%FT%TZ) sending scheduled reports"
   wget -q -T 120 -O - --header "Authorization: Bearer $CRON_SECRET" \
