@@ -10,7 +10,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
 
-  const existing = await user.db.roster.findUnique({ where: { id } });
+  const existing = await user.db.roster.findUnique({ where: { id }, include: { company: { select: { name: true } } } });
   if (!existing) return NextResponse.json({ error: "Roster not found" }, { status: 404 });
 
   const data: Record<string, string | null> = {};
@@ -21,14 +21,30 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
   if ("notes" in body) data.notes = body.notes || null;
 
-  if (data.name && data.name !== existing.name) {
+  const renamed = !!data.name && data.name !== existing.name;
+  if (renamed) {
     const nameTaken = await user.db.roster.findUnique({
-      where: { companyId_name: { companyId: existing.companyId, name: data.name } },
+      where: { companyId_name: { companyId: existing.companyId, name: data.name! } },
     });
     if (nameTaken) return NextResponse.json({ error: "That roster already exists for this company" }, { status: 409 });
   }
 
-  const roster = await user.db.roster.update({ where: { id }, data });
+  const update = user.db.roster.update({ where: { id }, data });
+
+  // Drivers and report schedules refer to a roster by company name + roster name: carry a rename over to them.
+  const company = existing.company.name;
+  const roster = renamed
+    ? (
+        await user.db.$transaction([
+          update,
+          user.db.driver.updateMany({ where: { company, roster: existing.name }, data: { roster: data.name } }),
+          user.db.reportSchedule.updateMany({
+            where: { companyFilter: company, rosterFilter: existing.name },
+            data: { rosterFilter: data.name },
+          }),
+        ])
+      )[0]
+    : await update;
   return NextResponse.json({ roster: serializeRoster(roster) });
 }
 

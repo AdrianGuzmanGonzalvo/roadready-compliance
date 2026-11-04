@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CompanyDTO, RosterDTO } from "@/types/company";
 
 const COMPANIES_KEY = ["companies"] as const;
@@ -10,6 +10,15 @@ async function fetchCompanies(): Promise<CompanyDTO[]> {
   if (!res.ok) throw new Error("Failed to load companies");
   const data = await res.json();
   return data.companies;
+}
+
+/** A company or roster rename is also written to its drivers and report schedules, so reload those too. */
+function invalidateRenamed(queryClient: QueryClient) {
+  return () => {
+    queryClient.invalidateQueries({ queryKey: COMPANIES_KEY });
+    queryClient.invalidateQueries({ queryKey: ["drivers"] });
+    queryClient.invalidateQueries({ queryKey: ["report-schedules"] });
+  };
 }
 
 export function useCompanies() {
@@ -72,7 +81,7 @@ export function useUpdateCompany() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateCompany,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: COMPANIES_KEY }),
+    onSuccess: invalidateRenamed(queryClient),
   });
 }
 
@@ -123,7 +132,7 @@ export function useUpdateRoster() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateRoster,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: COMPANIES_KEY }),
+    onSuccess: invalidateRenamed(queryClient),
   });
 }
 
