@@ -10,6 +10,7 @@ export interface RosterDTO {
 export interface CompanyDTO {
   id: string;
   name: string;
+  legalName: string | null;
   address: string | null;
   contactName: string | null;
   contactPhone: string | null;

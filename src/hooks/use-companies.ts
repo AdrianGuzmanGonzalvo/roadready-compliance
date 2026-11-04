@@ -18,6 +18,7 @@ export function useCompanies() {
 
 export interface CreateCompanyPayload {
   name: string;
+  legalName?: string;
   address?: string;
   contactName?: string;
   contactPhone?: string;
@@ -48,6 +49,7 @@ export function useCreateCompany() {
 export interface UpdateCompanyPayload {
   id: string;
   name?: string;
+  legalName?: string;
   address?: string;
   contactName?: string;
   contactPhone?: string;

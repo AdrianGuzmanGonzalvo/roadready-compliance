@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireWriteAccess } from "@/lib/auth";
 import { serializeCompany } from "@/lib/serialize";
 
-const TEXT_FIELDS = ["name", "address", "contactName", "contactPhone", "contactEmail", "notes"] as const;
+const TEXT_FIELDS = ["name", "legalName", "address", "contactName", "contactPhone", "contactEmail", "notes"] as const;
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireWriteAccess();

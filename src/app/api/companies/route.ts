@@ -31,6 +31,7 @@ export async function POST(req: Request) {
   const company = await user.db.company.create({
     data: {
       name,
+      legalName: typeof body.legalName === "string" ? body.legalName.trim() || null : null,
       address: body.address || null,
       contactName: body.contactName || null,
       contactPhone: body.contactPhone || null,

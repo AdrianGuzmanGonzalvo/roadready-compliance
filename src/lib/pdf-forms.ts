@@ -25,6 +25,7 @@ export interface PdfFormFillContext {
     phone: string | null;
   };
   companyName: string | null;
+  companyLegalName: string | null;
   companyContactName: string | null;
   companyContactPhone: string | null;
   licenseExp: Date | null;
@@ -72,5 +73,7 @@ export function buildPackageFormTextFields(ctx: PdfFormFillContext): Record<stri
     "Telephone Number": ctx.driver.phone ?? "",
     "Carrier Telephone Number": ctx.companyContactPhone ?? "",
     "Name of Article 19-A Contact Person": ctx.companyContactName ?? "",
+    // Shared by DS-870 and DS-875, next to the carrier name.
+    "Legal Name if different": ctx.companyLegalName ?? "",
   };
 }

@@ -20,6 +20,7 @@ import type { CompanyDTO } from "@/types/company";
 function fieldsFor(company?: CompanyDTO | null) {
   return {
     name: company?.name ?? "",
+    legalName: company?.legalName ?? "",
     address: company?.address ?? "",
     contactName: company?.contactName ?? "",
     contactPhone: company?.contactPhone ?? "",
@@ -107,6 +108,16 @@ export function CompanyDialog({
               onChange={(e) => setFields((s) => ({ ...s, name: e.target.value }))}
               autoFocus
             />
+          </div>
+          <div className="col-span-2 space-y-1.5">
+            <Label>Legal Name</Label>
+            <Input
+              value={fields.legalName}
+              onChange={(e) => setFields((s) => ({ ...s, legalName: e.target.value }))}
+            />
+            <p className="text-xs text-neutral-400">
+              Fills &quot;Legal Name if different&quot; on the 19-A package. Leave empty if it is the same as the company name.
+            </p>
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label>Address</Label>

@@ -102,6 +102,7 @@ export default function CompaniesPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-medium text-neutral-900">{company.name}</p>
+                    {company.legalName && <p className="text-xs text-neutral-500">{company.legalName}</p>}
                     <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-500">
                       {company.address && (
                         <span className="flex items-center gap-1">

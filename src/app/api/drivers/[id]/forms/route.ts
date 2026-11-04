@@ -41,6 +41,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       phone: driver.phone,
     },
     companyName: driver.company,
+    companyLegalName: company?.legalName ?? null,
     companyContactName: company?.contactName ?? null,
     companyContactPhone: company?.contactPhone ?? null,
     licenseExp: driver.complianceForm?.licenseExp ?? null,

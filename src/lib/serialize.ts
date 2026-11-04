@@ -89,6 +89,7 @@ export function serializeCompany(company: CompanyWithRosters): CompanyDTO {
   return {
     id: company.id,
     name: company.name,
+    legalName: company.legalName,
     address: company.address,
     contactName: company.contactName,
     contactPhone: company.contactPhone,
