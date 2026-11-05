@@ -25,21 +25,35 @@ export function buildSoonToExpireEmailHtml(params: {
   const expiredCount = entries.filter((e) => e.status === "expired").length;
   const expiringCount = entries.length - expiredCount;
 
-  const rows = entries
-    .slice(0, 50)
-    .map((e) => {
-      const badgeColor = e.status === "expired" ? "#b91c1c" : "#b45309";
-      const badgeBg = e.status === "expired" ? "#fef2f2" : "#fffbeb";
-      const days = e.daysRemaining < 0 ? `${Math.abs(e.daysRemaining)}d overdue` : `${e.daysRemaining}d left`;
-      return `<tr>
+  // The 50 most urgent, grouped by company (A-Z, drivers with none last), fewest days remaining first within each.
+  const byCompany = new Map<string, DueSoonEntry[]>();
+  for (const e of [...entries].sort((a, b) => a.daysRemaining - b.daysRemaining).slice(0, 50)) {
+    byCompany.set(e.company ?? "", [...(byCompany.get(e.company ?? "") ?? []), e]);
+  }
+  const companies = [...byCompany.keys()].sort((a, b) => (!a ? 1 : !b ? -1 : a.localeCompare(b)));
+
+  const entryRow = (e: DueSoonEntry) => {
+    const badgeColor = e.status === "expired" ? "#b91c1c" : "#b45309";
+    const badgeBg = e.status === "expired" ? "#fef2f2" : "#fffbeb";
+    const days = e.daysRemaining < 0 ? `${Math.abs(e.daysRemaining)}d overdue` : `${e.daysRemaining}d left`;
+    return `<tr>
         <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:13px;">${escapeHtml(e.lastName)}, ${escapeHtml(e.firstName)}</td>
-        <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:13px;color:#555;">${escapeHtml(e.company ?? "—")}</td>
         <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:13px;">${escapeHtml(e.formLabel)}</td>
         <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:13px;">${formatDate(e.date)}</td>
         <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:13px;">
           <span style="display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;color:${badgeColor};background:${badgeBg};border:1px solid ${badgeColor}33;">${days}</span>
         </td>
       </tr>`;
+  };
+
+  const rows = companies
+    .map((company) => {
+      const list = byCompany.get(company)!;
+      return `<tr>
+        <td colspan="4" style="padding:16px 10px 6px;font-size:14px;font-weight:700;border-bottom:2px solid #171717;">${escapeHtml(company || "No company")}
+          <span style="font-weight:400;font-size:12px;color:#999;">&nbsp;·&nbsp;${list.length} form${list.length === 1 ? "" : "s"}</span>
+        </td>
+      </tr>${list.map(entryRow).join("")}`;
     })
     .join("");
 
@@ -59,13 +73,12 @@ export function buildSoonToExpireEmailHtml(params: {
       <thead>
         <tr>
           <th style="text-align:left;padding:8px 10px;font-size:11px;color:#666;text-transform:uppercase;border-bottom:2px solid #eee;">Driver</th>
-          <th style="text-align:left;padding:8px 10px;font-size:11px;color:#666;text-transform:uppercase;border-bottom:2px solid #eee;">Company</th>
           <th style="text-align:left;padding:8px 10px;font-size:11px;color:#666;text-transform:uppercase;border-bottom:2px solid #eee;">Form</th>
           <th style="text-align:left;padding:8px 10px;font-size:11px;color:#666;text-transform:uppercase;border-bottom:2px solid #eee;">Due</th>
-          <th style="text-align:left;padding:8px 10px;font-size:11px;color:#666;text-transform:uppercase;border-bottom:2px solid #eee;">Status</th>
+          <th style="text-align:left;padding:8px 10px;font-size:11px;color:#666;text-transform:uppercase;border-bottom:2px solid #eee;">Days remaining</th>
         </tr>
       </thead>
-      <tbody>${rows || `<tr><td colspan="5" style="padding:16px;text-align:center;color:#999;font-size:13px;">Nothing expired or expiring soon 🎉</td></tr>`}</tbody>
+      <tbody>${rows || `<tr><td colspan="4" style="padding:16px;text-align:center;color:#999;font-size:13px;">Nothing expired or expiring soon 🎉</td></tr>`}</tbody>
     </table>
     ${truncatedNote}
     <a href="${appUrl}/reports/soon-to-expire" style="display:inline-block;margin-top:12px;padding:10px 18px;background:#171717;color:white;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;">View full report</a>

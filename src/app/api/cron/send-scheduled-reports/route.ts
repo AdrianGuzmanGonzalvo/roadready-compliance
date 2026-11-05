@@ -5,9 +5,22 @@ import { loadReportData, sendSoonToExpireReport } from "@/lib/scheduled-report";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-function isDueToday(schedule: { frequency: string; dayOfWeek: number | null; dayOfMonth: number | null }, now: Date): boolean {
+const DAY = 86_400_000;
+
+function isDueToday(
+  schedule: { frequency: string; dayOfWeek: number | null; dayOfMonth: number | null; lastSentAt: Date | null },
+  now: Date
+): boolean {
   if (schedule.frequency === "DAILY") return true;
   if (schedule.frequency === "WEEKLY") return now.getUTCDay() === schedule.dayOfWeek;
+  // Every other week: the first one on the next matching weekday, then on that weekday once two weeks have
+  // passed (13 days, so a run a little earlier in the day than last time still counts). "Send now" doesn't count.
+  if (schedule.frequency === "BIWEEKLY") {
+    return (
+      now.getUTCDay() === schedule.dayOfWeek &&
+      (!schedule.lastSentAt || now.getTime() - schedule.lastSentAt.getTime() >= 13 * DAY)
+    );
+  }
   if (schedule.frequency === "MONTHLY") return now.getUTCDate() === schedule.dayOfMonth;
   return false;
 }

@@ -58,6 +58,25 @@ export function useToggleReportSchedule() {
   });
 }
 
+export function useUpdateReportSchedule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...payload }: CreateScheduleInput & { id: string }) => {
+      const res = await fetch(`/api/report-schedules/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? "Failed to update schedule");
+      }
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["report-schedules"] }),
+  });
+}
+
 export function useSendReportScheduleNow() {
   return useMutation({
     mutationFn: async (id: string) => {

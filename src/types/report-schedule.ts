@@ -1,4 +1,4 @@
-export type ReportScheduleFrequency = "DAILY" | "WEEKLY" | "MONTHLY";
+export type ReportScheduleFrequency = "DAILY" | "WEEKLY" | "BIWEEKLY" | "MONTHLY";
 
 export interface ReportScheduleDTO {
   id: string;

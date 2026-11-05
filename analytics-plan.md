@@ -145,7 +145,8 @@ La app guarda PII de conductores (nombres, licencias, SSN, teléfonos). Reglas o
 | Evento | Se dispara cuando | Propiedades | Ubicación |
 | --- | --- | --- | --- |
 | `report_exported` | Exportación CSV/Excel o impresión | `report`: `drivers_list` \| `soon_to_expire`; `format`: `csv` \| `xlsx` \| `print`; `row_count` | [drivers/page.tsx:137-141](src/app/(app)/drivers/page.tsx#L137-L141), [soon-to-expire/page.tsx:111-133](src/app/(app)/reports/soon-to-expire/page.tsx#L111-L133) |
-| `report_schedule_created` | Se crea un envío programado | `frequency`: `DAILY` \| `WEEKLY` \| `MONTHLY`; `recipient_count` | [report-schedule-panel.tsx:47](src/components/reports/report-schedule-panel.tsx#L47) |
+| `report_schedule_created` | Se crea un envío programado | `frequency`: `DAILY` \| `WEEKLY` \| `BIWEEKLY` \| `MONTHLY`; `recipient_count` | [report-schedule-panel.tsx:47](src/components/reports/report-schedule-panel.tsx#L47) |
+| `report_schedule_updated` | Se modifica un envío programado (emails o frecuencia) | `frequency` | [report-schedule-panel.tsx](src/components/reports/report-schedule-panel.tsx) |
 | `report_schedule_toggled` | Pausa/reanuda un envío | `enabled` | [report-schedule-panel.tsx:93](src/components/reports/report-schedule-panel.tsx#L93) |
 | `report_schedule_deleted` | Se borra un envío | — | [report-schedule-panel.tsx:105](src/components/reports/report-schedule-panel.tsx#L105) |
 | `report_schedule_sent_now` | Se envía un reporte programado al momento (Send now) | — | [report-schedule-panel.tsx](src/components/reports/report-schedule-panel.tsx) |

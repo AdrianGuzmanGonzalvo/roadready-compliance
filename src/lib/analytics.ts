@@ -109,6 +109,7 @@ export interface AnalyticsEvents {
   // Reports
   report_exported: { report: "drivers_list" | "soon_to_expire"; format: "csv" | "xlsx" | "print"; row_count: number };
   report_schedule_created: { frequency: ReportScheduleFrequency; recipient_count: number };
+  report_schedule_updated: { frequency: ReportScheduleFrequency };
   report_schedule_toggled: { enabled: boolean };
   report_schedule_deleted: NoProperties;
   report_schedule_sent_now: NoProperties;

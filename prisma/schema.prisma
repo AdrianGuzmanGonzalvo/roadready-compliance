@@ -182,6 +182,7 @@ model DriverDocument {
 enum ReportScheduleFrequency {
   DAILY
   WEEKLY
+  BIWEEKLY
   MONTHLY
 }
 
@@ -193,7 +194,7 @@ model ReportSchedule {
   reportType    String                  @default("soon_to_expire")
   recipients    String // comma-separated email addresses
   frequency     ReportScheduleFrequency @default(DAILY)
-  dayOfWeek     Int? // 0 (Sunday) - 6 (Saturday); used when frequency = WEEKLY
+  dayOfWeek     Int? // 0 (Sunday) - 6 (Saturday); used when frequency = WEEKLY or BIWEEKLY
   dayOfMonth    Int? // 1-31; used when frequency = MONTHLY
   companyFilter String? // null/"ALL" = every company
   rosterFilter  String? // null/"ALL" = every roster
