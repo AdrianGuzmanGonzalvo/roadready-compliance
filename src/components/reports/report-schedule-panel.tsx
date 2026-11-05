@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Mail, Plus, Trash2, Pause, Play } from "lucide-react";
+import { Mail, Plus, Trash2, Pause, Play, Send, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import {
   useCreateReportSchedule,
   useToggleReportSchedule,
   useDeleteReportSchedule,
+  useSendReportScheduleNow,
   type CreateScheduleInput,
 } from "@/hooks/use-report-schedules";
 import type { ReportScheduleFrequency } from "@/types/report-schedule";
@@ -31,6 +32,7 @@ export function ReportSchedulePanel() {
   const createSchedule = useCreateReportSchedule();
   const toggleSchedule = useToggleReportSchedule();
   const deleteSchedule = useDeleteReportSchedule();
+  const sendNow = useSendReportScheduleNow();
 
   const [recipients, setRecipients] = React.useState("");
   const [frequency, setFrequency] = React.useState<ReportScheduleFrequency>("DAILY");
@@ -83,6 +85,27 @@ export function ReportSchedulePanel() {
                   </p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title="Send now"
+                    disabled={sendNow.isPending}
+                    onClick={() =>
+                      sendNow.mutate(s.id, {
+                        onSuccess: () => {
+                          trackEvent("report_schedule_sent_now", {});
+                          toast.success(`Report sent to ${s.recipients.split(",").join(", ")}`);
+                        },
+                        onError: (err) => toast.error(err instanceof Error ? err.message : "Failed to send report"),
+                      })
+                    }
+                  >
+                    {sendNow.isPending && sendNow.variables === s.id ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Send className="size-4" />
+                    )}
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"

@@ -148,6 +148,7 @@ La app guarda PII de conductores (nombres, licencias, SSN, teléfonos). Reglas o
 | `report_schedule_created` | Se crea un envío programado | `frequency`: `DAILY` \| `WEEKLY` \| `MONTHLY`; `recipient_count` | [report-schedule-panel.tsx:47](src/components/reports/report-schedule-panel.tsx#L47) |
 | `report_schedule_toggled` | Pausa/reanuda un envío | `enabled` | [report-schedule-panel.tsx:93](src/components/reports/report-schedule-panel.tsx#L93) |
 | `report_schedule_deleted` | Se borra un envío | — | [report-schedule-panel.tsx:105](src/components/reports/report-schedule-panel.tsx#L105) |
+| `report_schedule_sent_now` | Se envía un reporte programado al momento (Send now) | — | [report-schedule-panel.tsx](src/components/reports/report-schedule-panel.tsx) |
 
 ### Administración
 

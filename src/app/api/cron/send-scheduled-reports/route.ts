@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import { controlPrisma, getTenantPrisma } from "@/lib/prisma";
-import { getServerFormFieldDefs } from "@/lib/server-form-fields";
-import { serializeDriver } from "@/lib/serialize";
-import { getDueSoonEntries } from "@/lib/compliance";
-import { filterByCompanyRoster } from "@/lib/scope";
-import { buildSoonToExpireEmailHtml, sendReportEmail } from "@/lib/email";
+import { loadReportData, sendSoonToExpireReport } from "@/lib/scheduled-report";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
-
-const APP_URL = process.env.APP_URL ?? "https://roadready-compliance.com";
 
 function isDueToday(schedule: { frequency: string; dayOfWeek: number | null; dayOfMonth: number | null }, now: Date): boolean {
   if (schedule.frequency === "DAILY") return true;
@@ -53,25 +47,11 @@ export async function GET(req: Request) {
     const dueSchedules = schedules.filter((s) => isDueToday(s, now) && !alreadySentToday(s.lastSentAt, now));
     if (dueSchedules.length === 0) continue;
 
-    const [drivers, formFieldDefs] = await Promise.all([
-      db.driver.findMany({ include: { complianceForm: true, customFormValues: true, documents: true } }),
-      getServerFormFieldDefs(db),
-    ]);
-    const driverDtos = drivers.map(serializeDriver);
+    const data = await loadReportData(db);
 
     for (const schedule of dueSchedules) {
       try {
-        const scoped = filterByCompanyRoster(driverDtos, schedule.companyFilter ?? "ALL", schedule.rosterFilter ?? "ALL");
-        const entries = getDueSoonEntries(scoped, 30, now, formFieldDefs);
-        const html = buildSoonToExpireEmailHtml({ tenantName: tenant.name, entries, appUrl: APP_URL });
-        const to = schedule.recipients.split(",").map((e) => e.trim());
-
-        await sendReportEmail({
-          to,
-          subject: `[${tenant.name}] Soon to Expire — ${entries.length} form${entries.length === 1 ? "" : "s"} due`,
-          html,
-        });
-
+        await sendSoonToExpireReport({ tenantName: tenant.name, schedule, data, now });
         await db.reportSchedule.update({ where: { id: schedule.id }, data: { lastSentAt: now } });
         results.push({ tenant: tenant.code, schedule: schedule.id, sent: true });
       } catch (err) {

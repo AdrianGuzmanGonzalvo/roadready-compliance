@@ -58,6 +58,18 @@ export function useToggleReportSchedule() {
   });
 }
 
+export function useSendReportScheduleNow() {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/report-schedules/${id}/send`, { method: "POST" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? "Failed to send report");
+      }
+    },
+  });
+}
+
 export function useDeleteReportSchedule() {
   const queryClient = useQueryClient();
   return useMutation({

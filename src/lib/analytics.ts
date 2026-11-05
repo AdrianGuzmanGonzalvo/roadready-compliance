@@ -111,6 +111,7 @@ export interface AnalyticsEvents {
   report_schedule_created: { frequency: ReportScheduleFrequency; recipient_count: number };
   report_schedule_toggled: { enabled: boolean };
   report_schedule_deleted: NoProperties;
+  report_schedule_sent_now: NoProperties;
 
   // Administration
   company_created: { roster_count: number };
