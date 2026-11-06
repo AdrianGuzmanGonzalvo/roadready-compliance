@@ -5,6 +5,16 @@ import type { FormFieldKey } from "@/types/driver";
 /** Login code of the public demo account (the one on the flyer). */
 export const DEMO_TENANT_CODE = "0000";
 
+/**
+ * What the demo account is called (it shows in report emails). Invented; it must keep "Demo" in it,
+ * which is what lets the daily refresh touch this account at all (see the refresh-demo route).
+ */
+export const DEMO_TENANT_NAME = "Harborline Transit (Demo)";
+
+/** The demo was copied from this real customer's data; companies named after it get an invented name. */
+const REAL_CUSTOMER = /primeflight/i;
+const DEMO_COMPANY_NAMES = ["Harborline Transit", "Summit Ridge Shuttle", "Lakeview Transit Group", "Northgate Coach Lines"];
+
 const DAY = 86_400_000;
 
 type DemoRole = "expired" | "expiring_30" | "expiring_60" | "compliant";
@@ -128,11 +138,14 @@ function digits(seed: string, n: number): string {
  * that were empty stay empty, so the demo keeps its shape. Run before refreshDemoCompliance.
  */
 export async function anonymizeDemoAccount(db: PrismaClient) {
+  const companiesRenamed = await renameRealCustomerCompanies(db);
   const [drivers, companies] = await Promise.all([
     db.driver.findMany({
       select: { id: true, pfl: true, clientId: true, phone: true, email: true, driversLicense: true, ssn: true, dob: true },
     }),
-    db.company.findMany({ select: { id: true, contactName: true, contactPhone: true, contactEmail: true } }),
+    db.company.findMany({
+      select: { id: true, name: true, legalName: true, address: true, contactName: true, contactPhone: true, contactEmail: true },
+    }),
   ]);
   drivers.sort((a, b) => hash(a.id) - hash(b.id) || a.id.localeCompare(b.id));
 
@@ -166,6 +179,8 @@ export async function anonymizeDemoAccount(db: PrismaClient) {
       db.company.update({
         where: { id: c.id },
         data: {
+          legalName: c.legalName && `${c.name} LLC`,
+          address: c.address && `${120 + j * 40} Harbor Road, Queens, NY 11430`,
           contactName: c.contactName && `${contact.firstName} ${contact.lastName}`,
           contactPhone: c.contactPhone && fakePhone(`${c.id}phone`),
           contactEmail: c.contactEmail && `contact${j + 1}@example.com`,
@@ -180,5 +195,34 @@ export async function anonymizeDemoAccount(db: PrismaClient) {
     db.roster.updateMany({ data: { notes: null } }),
     db.driverDocument.deleteMany({}),
   ]);
-  return { drivers: drivers.length, companies: companies.length, documentsRemoved };
+  return { drivers: drivers.length, companies: companies.length, companiesRenamed, documentsRemoved };
+}
+
+/**
+ * Gives every company named after the real customer an invented name, everywhere a company name is
+ * stored: the company itself, its drivers and report schedules (they refer to it by name, not id).
+ * Covers names that only appear on drivers too. Finds nothing to do after the first run.
+ */
+async function renameRealCustomerCompanies(db: PrismaClient): Promise<number> {
+  const [companies, driverCompanies] = await Promise.all([
+    db.company.findMany({ select: { name: true } }),
+    db.driver.findMany({ where: { company: { not: null } }, select: { company: true }, distinct: ["company"] }),
+  ]);
+  const names = new Set([...companies.map((c) => c.name), ...driverCompanies.map((d) => d.company ?? "")]);
+  // Actual companies first, so the main one gets the first invented name (the account's own).
+  const companyNames = new Set(companies.map((c) => c.name));
+  const real = [...names]
+    .filter((name) => REAL_CUSTOMER.test(name))
+    .sort((a, b) => Number(!companyNames.has(a)) - Number(!companyNames.has(b)) || a.localeCompare(b));
+  const free = DEMO_COMPANY_NAMES.filter((name) => !names.has(name));
+
+  for (const [i, from] of real.entries()) {
+    const to = free[i] ?? `Demo Transit ${i + 1}`;
+    await db.$transaction([
+      db.company.updateMany({ where: { name: from }, data: { name: to } }),
+      db.driver.updateMany({ where: { company: from }, data: { company: to } }),
+      db.reportSchedule.updateMany({ where: { companyFilter: from }, data: { companyFilter: to } }),
+    ]);
+  }
+  return real.length;
 }

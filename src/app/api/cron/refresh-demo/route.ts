@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { rejectUnlessCron } from "@/lib/cron-auth";
 import { controlPrisma, getTenantPrisma } from "@/lib/prisma";
-import { DEMO_TENANT_CODE, anonymizeDemoAccount, refreshDemoCompliance } from "@/lib/demo-data";
+import { DEMO_TENANT_CODE, DEMO_TENANT_NAME, anonymizeDemoAccount, refreshDemoCompliance } from "@/lib/demo-data";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -20,8 +20,12 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: `Tenant ${DEMO_TENANT_CODE} is not the demo account` }, { status: 404 });
   }
 
+  if (tenant.name !== DEMO_TENANT_NAME) {
+    await controlPrisma.tenant.update({ where: { id: tenant.id }, data: { name: DEMO_TENANT_NAME } });
+  }
+
   const db = getTenantPrisma(tenant);
   const anonymized = await anonymizeDemoAccount(db);
   const result = await refreshDemoCompliance(db);
-  return NextResponse.json({ tenant: tenant.code, anonymized, ...result });
+  return NextResponse.json({ tenant: tenant.code, name: DEMO_TENANT_NAME, anonymized, ...result });
 }
