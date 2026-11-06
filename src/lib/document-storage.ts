@@ -53,8 +53,17 @@ export function safeDocumentFilename(filename: string): string {
   return (cleaned || "document").slice(-150);
 }
 
+/**
+ * True if `pathname` is a plain relative path: no "..", ".", empty or absolute parts, no backslashes.
+ * Checked before resolving, so "<own folder>/../<someone else's folder>" can't pass a prefix check.
+ */
+export function isPlainDocumentPath(pathname: string): boolean {
+  return !pathname.includes("\\") && pathname.split("/").every((part) => part !== "" && part !== "." && part !== "..");
+}
+
 /** Absolute path for a stored pathname, or null if it would escape DOCUMENTS_DIR. */
 function resolveDocumentPath(pathname: string): string | null {
+  if (!isPlainDocumentPath(pathname)) return null;
   const resolved = path.resolve(/* turbopackIgnore: true */ DOCUMENTS_DIR, pathname);
   if (!resolved.startsWith(DOCUMENTS_DIR + path.sep)) return null;
   return resolved;

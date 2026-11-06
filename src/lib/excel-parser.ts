@@ -1,5 +1,6 @@
 import * as XLSX from "xlsx";
 import type { DriverStatusValue } from "@/types/driver";
+import { maskSSN } from "@/lib/utils";
 
 /**
  * Parses the RoadReady driver-list workbook. Expects three sheets:
@@ -92,13 +93,6 @@ function toDate(value: unknown): Date | null {
   return null;
 }
 
-function maskSSN(raw: string | null): string | null {
-  if (!raw) return null;
-  const digits = raw.replace(/\D/g, "");
-  if (digits.length < 4) return raw;
-  const last4 = digits.slice(-4);
-  return `***-**-${last4}`;
-}
 
 function sheetToRows(sheet: XLSX.WorkSheet): unknown[][] {
   return XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: "" }) as unknown[][];

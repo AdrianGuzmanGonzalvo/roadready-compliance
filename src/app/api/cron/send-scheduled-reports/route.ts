@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rejectUnlessCron } from "@/lib/cron-auth";
 import { controlPrisma, getTenantPrisma } from "@/lib/prisma";
 import { loadReportData, sendSoonToExpireReport } from "@/lib/scheduled-report";
 
@@ -35,13 +36,8 @@ function alreadySentToday(lastSentAt: Date | null, now: Date): boolean {
 }
 
 export async function GET(req: Request) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
-
-  const auth = req.headers.get("authorization");
-  if (auth !== `Bearer ${secret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const rejected = rejectUnlessCron(req);
+  if (rejected) return rejected;
 
   const now = new Date();
   const tenants = await controlPrisma.tenant.findMany({ where: { status: "ACTIVE" } });

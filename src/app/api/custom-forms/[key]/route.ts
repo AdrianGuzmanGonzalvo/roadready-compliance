@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
+import { ignoreNotFound } from "@/lib/prisma";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ key: string }> }) {
   const admin = await requireAdmin();
@@ -30,6 +31,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ key:
   if (admin instanceof NextResponse) return admin;
 
   const { key } = await params;
-  await admin.db.customForm.delete({ where: { key } }).catch(() => null);
+  await admin.db.customForm.delete({ where: { key } }).catch(ignoreNotFound);
   return NextResponse.json({ ok: true });
 }

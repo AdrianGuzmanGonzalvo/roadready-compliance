@@ -37,6 +37,15 @@ function resolveControlAdapter(): PrismaLibSql {
   return buildAdapter(`file:${runtimeDb}`);
 }
 
+/**
+ * For `.catch()` on a delete that may find nothing to delete: "record not found" (P2025) counts as done,
+ * any other failure is re-thrown so the request fails instead of reporting success.
+ */
+export function ignoreNotFound(error: unknown): null {
+  if (typeof error === "object" && error !== null && "code" in error && error.code === "P2025") return null;
+  throw error;
+}
+
 /** The single, fixed connection to the control-plane database (the `Tenant` registry). */
 export const controlPrisma =
   globalForPrisma.controlPrisma ??

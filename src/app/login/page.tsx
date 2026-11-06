@@ -14,7 +14,9 @@ import { trackEvent } from "@/lib/analytics";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") || "/overview";
+  // Only a page of this app: "//other.site" or an absolute URL would send people elsewhere after signing in.
+  const requested = searchParams.get("next");
+  const next = requested && /^\/(?![/\\])/.test(requested) ? requested : "/overview";
 
   const [codes, setCodes] = React.useState<string[]>([]);
   const [tenantsError, setTenantsError] = React.useState(false);
@@ -46,7 +48,8 @@ function LoginForm() {
     trackEvent("login_submitted", { success: res.ok });
 
     if (!res.ok) {
-      setError("Incorrect company code, username, or password.");
+      const body = res.status === 429 ? await res.json().catch(() => null) : null;
+      setError(body?.error ?? "Incorrect company code, username, or password.");
       return;
     }
 

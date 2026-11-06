@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireWriteAccess } from "@/lib/auth";
+import { ignoreNotFound } from "@/lib/prisma";
 import { serializeCompany } from "@/lib/serialize";
 
 const TEXT_FIELDS = ["name", "legalName", "address", "contactName", "contactPhone", "contactEmail", "notes"] as const;
@@ -57,6 +58,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (user instanceof NextResponse) return user;
 
   const { id } = await params;
-  await user.db.company.delete({ where: { id } }).catch(() => null);
+  await user.db.company.delete({ where: { id } }).catch(ignoreNotFound);
   return NextResponse.json({ ok: true });
 }

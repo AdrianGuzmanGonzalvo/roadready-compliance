@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sendReportEmail, buildDemoRequestConfirmationHtml } from "@/lib/email";
 import { CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/marketing";
+import { clientIp, recordHit, retryAfterSeconds, tooManyRequests } from "@/lib/rate-limit";
 
 /**
  * Public demo-request endpoint for the marketing landing page.
@@ -11,6 +12,11 @@ import { CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/marketing";
  */
 
 const MAX_LENGTHS: Record<string, number> = { name: 120, company: 160, email: 200, phone: 40, drivers: 40 };
+
+// Each request also emails the address typed in, so cap it per visitor: otherwise the form could be used
+// to send mail from our domain to anyone.
+const REQUESTS_PER_IP = 5;
+const REQUEST_WINDOW_MS = 60 * 60 * 1000;
 
 function escapeHtml(value: string): string {
   return value
@@ -46,6 +52,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That email address does not look valid." }, { status: 400 });
   }
 
+  const ipKey = `demo-request:${clientIp(request)}`;
+  const wait = retryAfterSeconds(ipKey, REQUESTS_PER_IP, REQUEST_WINDOW_MS);
+  if (wait > 0) {
+    return tooManyRequests(`Too many requests from this connection. Please try again later or email ${CONTACT_EMAIL}.`, wait);
+  }
+
   const to = process.env.DEMO_REQUEST_TO;
   if (!to || !process.env.RESEND_API_KEY) {
     console.error("[demo-request] Not configured (DEMO_REQUEST_TO / RESEND_API_KEY). Lead received:", fields);
@@ -64,6 +76,7 @@ export async function POST(request: Request) {
     )
     .join("");
 
+  recordHit(ipKey, REQUEST_WINDOW_MS);
   try {
     await sendReportEmail({
       to: to.split(",").map((address) => address.trim()).filter(Boolean),

@@ -83,8 +83,102 @@ export async function refreshDemoCompliance(db: PrismaClient, now: Date = new Da
     }
   });
 
-  // Ten at a time: the database is a network hop away.
-  for (let i = 0; i < writes.length; i += 10) await Promise.all(writes.slice(i, i + 10).map((write) => write()));
-
+  await runInBatches(writes);
   return { drivers: drivers.length, ...counts };
+}
+
+/** Ten at a time: the database is a network hop away. */
+async function runInBatches(writes: (() => Promise<unknown>)[]) {
+  for (let i = 0; i < writes.length; i += 10) await Promise.all(writes.slice(i, i + 10).map((write) => write()));
+}
+
+const FIRST_NAMES = [
+  "James", "Maria", "Robert", "Linda", "Michael", "Patricia", "David", "Jennifer", "Carlos", "Elizabeth",
+  "Daniel", "Susan", "Anthony", "Jessica", "Kevin", "Sarah", "Brian", "Karen", "Jose", "Nancy",
+  "Marcus", "Lisa", "Steven", "Angela", "Luis", "Michelle", "Andrew", "Sandra", "Eric", "Donna",
+  "Victor", "Carol", "Raymond", "Ruth", "Gregory", "Sharon", "Samuel", "Laura", "Frank", "Rosa",
+  "Dennis", "Diane", "Jorge", "Gloria", "Peter", "Teresa", "Henry", "Ana", "Walter", "Denise",
+];
+const LAST_NAMES = [
+  "Walker", "Rivera", "Bennett", "Hayes", "Morales", "Brooks", "Fisher", "Ortega", "Coleman", "Jenkins",
+  "Perry", "Russell", "Sullivan", "Reyes", "Griffin", "Foster", "Dixon", "Medina", "Holland", "Warren",
+  "Fleming", "Castillo", "Barker", "Hudson", "Lambert", "Mendez", "Parsons", "Quinn", "Rhodes", "Salazar",
+  "Tucker", "Vaughn", "Wheeler", "Yates", "Archer", "Bishop", "Carver", "Delgado", "Ellison", "Franco",
+  "Garner", "Hopkins", "Ingram", "Keller", "Lowery", "Marsh", "Norris", "Osborne", "Pruitt", "Ramsey",
+];
+const AREA_CODES = ["212", "347", "516", "631", "718", "914"];
+
+/** The i-th invented name; no two of the first 2,500 are the same. */
+function inventedName(i: number): { firstName: string; lastName: string } {
+  const firstName = FIRST_NAMES[i % FIRST_NAMES.length];
+  const lastName = LAST_NAMES[(i + Math.floor(i / FIRST_NAMES.length)) % LAST_NAMES.length];
+  return { firstName, lastName };
+}
+
+/** `n` digits derived from `seed`, so a driver gets the same invented number every day. */
+function digits(seed: string, n: number): string {
+  return String(hash(seed) % 10 ** n).padStart(n, "0");
+}
+
+/**
+ * Replaces every personal detail in the demo account with invented values: driver names, numbers,
+ * phone, email, license, date of birth and medical notes, and the companies' contact people. Its
+ * document records are removed so no real file can be opened from the demo (the files themselves stay
+ * on the server). Deterministic, so running it daily changes nothing after the first time; fields
+ * that were empty stay empty, so the demo keeps its shape. Run before refreshDemoCompliance.
+ */
+export async function anonymizeDemoAccount(db: PrismaClient) {
+  const [drivers, companies] = await Promise.all([
+    db.driver.findMany({
+      select: { id: true, pfl: true, clientId: true, phone: true, email: true, driversLicense: true, ssn: true, dob: true },
+    }),
+    db.company.findMany({ select: { id: true, contactName: true, contactPhone: true, contactEmail: true } }),
+  ]);
+  drivers.sort((a, b) => hash(a.id) - hash(b.id) || a.id.localeCompare(b.id));
+
+  const fakePhone = (seed: string) => `(${AREA_CODES[hash(seed) % AREA_CODES.length]}) 555-01${digits(seed, 2)}`;
+
+  const writes: (() => Promise<unknown>)[] = drivers.map((d, i) => () => {
+    const { firstName, lastName } = inventedName(i);
+    return db.driver.update({
+      where: { id: d.id },
+      data: {
+        firstName,
+        lastName,
+        pfl: d.pfl && digits(`${d.id}pfl`, 5),
+        clientId: d.clientId && digits(`${d.id}client`, 6),
+        phone: d.phone && fakePhone(`${d.id}phone`),
+        email: d.email && `${firstName}.${lastName}@example.com`.toLowerCase(),
+        driversLicense: d.driversLicense && `DEMO${digits(`${d.id}license`, 5)}`,
+        ssn: d.ssn && `***-**-${digits(`${d.id}ssn`, 4)}`,
+        dob: d.dob && new Date(Date.UTC(1962, 0, 1, 12) + (hash(`${d.id}dob`) % 13_800) * DAY),
+        note: null,
+        medicalCondition: null,
+        bpFollowUp: null,
+        diabeticFollowUp: null,
+      },
+    });
+  });
+
+  companies.forEach((c, j) => {
+    const contact = inventedName(j * 7 + 3);
+    writes.push(() =>
+      db.company.update({
+        where: { id: c.id },
+        data: {
+          contactName: c.contactName && `${contact.firstName} ${contact.lastName}`,
+          contactPhone: c.contactPhone && fakePhone(`${c.id}phone`),
+          contactEmail: c.contactEmail && `contact${j + 1}@example.com`,
+          notes: null,
+        },
+      })
+    );
+  });
+
+  await runInBatches(writes);
+  const [, { count: documentsRemoved }] = await Promise.all([
+    db.roster.updateMany({ data: { notes: null } }),
+    db.driverDocument.deleteMany({}),
+  ]);
+  return { drivers: drivers.length, companies: companies.length, documentsRemoved };
 }

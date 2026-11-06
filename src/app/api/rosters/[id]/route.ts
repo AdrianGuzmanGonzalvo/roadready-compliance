@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireWriteAccess } from "@/lib/auth";
+import { ignoreNotFound } from "@/lib/prisma";
 import { serializeRoster } from "@/lib/serialize";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -53,6 +54,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (user instanceof NextResponse) return user;
 
   const { id } = await params;
-  await user.db.roster.delete({ where: { id } }).catch(() => null);
+  await user.db.roster.delete({ where: { id } }).catch(ignoreNotFound);
   return NextResponse.json({ ok: true });
 }

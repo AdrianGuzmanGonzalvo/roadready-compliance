@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { hashPassword, requireAdmin } from "@/lib/auth";
+import { ignoreNotFound } from "@/lib/prisma";
 import type { UserDTO, UserRole } from "@/types/user";
 
 const VALID_ROLES: UserRole[] = ["ADMIN", "USER", "DEMO", "SIMPLE_USER"];
@@ -77,6 +78,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     }
   }
 
-  await admin.db.user.delete({ where: { id } }).catch(() => null);
+  await admin.db.user.delete({ where: { id } }).catch(ignoreNotFound);
   return NextResponse.json({ ok: true });
 }

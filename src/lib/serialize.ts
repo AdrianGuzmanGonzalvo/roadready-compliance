@@ -1,6 +1,7 @@
 import type { Driver, ComplianceForm, CustomFormValue, DriverDocument, Company, Roster } from "@/generated/prisma/client";
 import type { DriverDTO, ComplianceFormDTO } from "@/types/driver";
 import type { CompanyDTO, RosterDTO } from "@/types/company";
+import { maskSSN } from "@/lib/utils";
 
 type DriverWithForm = Driver & {
   complianceForm: ComplianceForm | null;
@@ -55,7 +56,7 @@ export function serializeDriver(driver: DriverWithForm): DriverDTO {
     email: driver.email,
     position: driver.position,
     driversLicense: driver.driversLicense,
-    ssn: driver.ssn,
+    ssn: maskSSN(driver.ssn),
     dob: toIso(driver.dob),
     licenseClass: driver.licenseClass,
     endorsements: driver.endorsements,

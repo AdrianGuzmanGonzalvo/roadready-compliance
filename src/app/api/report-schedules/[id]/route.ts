@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
+import { ignoreNotFound } from "@/lib/prisma";
 import { parseEmails, parseTiming, serializeSchedule, type ScheduleTiming } from "@/lib/report-schedule-input";
 
 /** Pauses/resumes a schedule (`enabled`) or edits it (`recipients`, and `frequency` with its day). */
@@ -36,6 +37,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (admin instanceof NextResponse) return admin;
 
   const { id } = await params;
-  await admin.db.reportSchedule.delete({ where: { id } }).catch(() => null);
+  await admin.db.reportSchedule.delete({ where: { id } }).catch(ignoreNotFound);
   return NextResponse.json({ ok: true });
 }

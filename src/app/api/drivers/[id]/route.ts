@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSessionUser, requireWriteAccess } from "@/lib/auth";
+import { ignoreNotFound } from "@/lib/prisma";
 import { serializeDriver } from "@/lib/serialize";
+import { maskSSN } from "@/lib/utils";
 import { DRIVER_STATUSES, FORM_FIELD_DEFS } from "@/types/driver";
 
 const DRIVER_TEXT_FIELDS = [
@@ -25,6 +27,13 @@ const DRIVER_TEXT_FIELDS = [
 ] as const;
 
 const FORM_DATE_FIELDS = [...FORM_FIELD_DEFS.map((f) => f.key), "annualDefensiveDrivingTest"] as const;
+
+/** A text column's new value: "" clears it, a number is kept as text, anything else (an object, true...) is refused as empty. */
+function textOrNull(value: unknown): string | null {
+  if (typeof value === "string") return value || null;
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return null;
+}
 
 function parseDateInput(value: unknown): Date | null | undefined {
   if (value === undefined) return undefined;
@@ -51,20 +60,24 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (user instanceof NextResponse) return user;
 
   const { id } = await params;
-  const body = await req.json();
+  const body = await req.json().catch(() => null);
+  if (!body || typeof body !== "object") return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  if (body.driver !== undefined && (typeof body.driver !== "object" || body.driver === null)) {
+    return NextResponse.json({ error: "Invalid driver data" }, { status: 400 });
+  }
 
   const driverData: Record<string, unknown> = {};
   for (const field of DRIVER_TEXT_FIELDS) {
-    if (body.driver && field in body.driver) driverData[field] = body.driver[field] || null;
+    if (body.driver && field in body.driver) driverData[field] = textOrNull(body.driver[field]);
   }
   if (body.driver?.status && DRIVER_STATUSES.includes(body.driver.status)) {
     driverData.status = body.driver.status;
   }
   if (body.driver && "dob" in body.driver) driverData.dob = parseDateInput(body.driver.dob);
-  if (body.driver && "ssn" in body.driver) driverData.ssn = body.driver.ssn || null;
+  if (body.driver && "ssn" in body.driver) driverData.ssn = maskSSN(textOrNull(body.driver.ssn));
 
   const formData: Record<string, unknown> = {};
-  if (body.form) {
+  if (body.form && typeof body.form === "object") {
     for (const field of FORM_DATE_FIELDS) {
       if (field in body.form) formData[field] = parseDateInput(body.form[field]);
     }
@@ -114,6 +127,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (user instanceof NextResponse) return user;
 
   const { id } = await params;
-  await user.db.driver.delete({ where: { id } }).catch(() => null);
+  await user.db.driver.delete({ where: { id } }).catch(ignoreNotFound);
   return NextResponse.json({ ok: true });
 }

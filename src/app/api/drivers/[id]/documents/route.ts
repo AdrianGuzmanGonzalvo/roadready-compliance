@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireWriteAccess } from "@/lib/auth";
+import { isPlainDocumentPath } from "@/lib/document-storage";
+
+/** Control characters (newlines included) never belong in a label or a filename that ends up in a response header. */
+function cleanText(value: unknown, maxLength: number): string {
+  return typeof value === "string" ? value.replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, maxLength) : "";
+}
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await requireWriteAccess();
@@ -8,8 +14,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { id: driverId } = await params;
   const body = await req.json().catch(() => null);
 
-  const label = typeof body?.label === "string" ? body.label.trim() : "";
-  const filename = typeof body?.filename === "string" ? body.filename : "";
+  const label = cleanText(body?.label, 200);
+  const filename = cleanText(body?.filename, 255);
   const pathname = typeof body?.pathname === "string" ? body.pathname : "";
   const contentType = typeof body?.contentType === "string" ? body.contentType : null;
   const size = typeof body?.size === "number" ? body.size : 0;
@@ -17,7 +23,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!label || !filename || !pathname) {
     return NextResponse.json({ error: "label, filename, and pathname are required" }, { status: 400 });
   }
-  if (!pathname.startsWith(`${user.tenantCode}/drivers/${driverId}/`)) {
+  // Exactly one file inside this driver's own folder, as the upload route names it.
+  const folder = `${user.tenantCode}/drivers/${driverId}/`;
+  if (!pathname.startsWith(folder) || pathname.slice(folder.length).includes("/") || !isPlainDocumentPath(pathname)) {
     return NextResponse.json({ error: "Invalid pathname" }, { status: 400 });
   }
 
