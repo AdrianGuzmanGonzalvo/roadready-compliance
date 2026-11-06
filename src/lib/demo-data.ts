@@ -11,9 +11,18 @@ export const DEMO_TENANT_CODE = "0000";
  */
 export const DEMO_TENANT_NAME = "Harborline Transit (Demo)";
 
-/** The demo was copied from this real customer's data; companies named after it get an invented name. */
+/** The demo was copied from this real customer's data: its company gets the first invented name. */
 const REAL_CUSTOMER = /primeflight/i;
-const DEMO_COMPANY_NAMES = ["Harborline Transit", "Summit Ridge Shuttle", "Lakeview Transit Group", "Northgate Coach Lines"];
+/** Real names that also turned up as rosters in the copied data. */
+const REAL_ROSTER = /primeflight|sunrise/i;
+
+/** Invented names every demo company ends up with (school-like ones get a school name). */
+const TRANSIT_NAMES = [
+  "Harborline Transit", "Summit Ridge Shuttle", "Lakeview Transit Group", "Northgate Coach Lines",
+  "Bayside Airport Express", "Riverbend Charter Co.",
+];
+const SCHOOL_NAMES = ["Maplewood Early Learning Pre-K", "Brightpath Academy", "Little Oaks Learning Center", "Cedar Grove School"];
+const SCHOOL_LIKE = /pre-?k|school|student|academy|learning|kids|child/i;
 
 const DAY = 86_400_000;
 
@@ -138,7 +147,8 @@ function digits(seed: string, n: number): string {
  * that were empty stay empty, so the demo keeps its shape. Run before refreshDemoCompliance.
  */
 export async function anonymizeDemoAccount(db: PrismaClient) {
-  const companiesRenamed = await renameRealCustomerCompanies(db);
+  const companiesRenamed = await renameDemoCompanies(db);
+  const rostersRenamed = await renameRealRosters(db);
   const [drivers, companies] = await Promise.all([
     db.driver.findMany({
       select: { id: true, pfl: true, clientId: true, phone: true, email: true, driversLicense: true, ssn: true, dob: true },
@@ -195,33 +205,72 @@ export async function anonymizeDemoAccount(db: PrismaClient) {
     db.roster.updateMany({ data: { notes: null } }),
     db.driverDocument.deleteMany({}),
   ]);
-  return { drivers: drivers.length, companies: companies.length, companiesRenamed, documentsRemoved };
+  return { drivers: drivers.length, companies: companies.length, companiesRenamed, rostersRenamed, documentsRemoved };
 }
 
+const isInventedCompany = (name: string) =>
+  TRANSIT_NAMES.includes(name) || SCHOOL_NAMES.includes(name) || /^Demo Company \d+$/.test(name);
+
 /**
- * Gives every company named after the real customer an invented name, everywhere a company name is
- * stored: the company itself, its drivers and report schedules (they refer to it by name, not id).
- * Covers names that only appear on drivers too. Finds nothing to do after the first run.
+ * Gives every company that doesn't have an invented name yet one, everywhere a company name is stored:
+ * the company itself, its drivers and report schedules (they refer to it by name, not id). Covers names
+ * that only appear on drivers too. School-like names get a school name. Nothing to do after the first run.
  */
-async function renameRealCustomerCompanies(db: PrismaClient): Promise<number> {
+async function renameDemoCompanies(db: PrismaClient): Promise<number> {
   const [companies, driverCompanies] = await Promise.all([
     db.company.findMany({ select: { name: true } }),
     db.driver.findMany({ where: { company: { not: null } }, select: { company: true }, distinct: ["company"] }),
   ]);
-  const names = new Set([...companies.map((c) => c.name), ...driverCompanies.map((d) => d.company ?? "")]);
-  // Actual companies first, so the main one gets the first invented name (the account's own).
   const companyNames = new Set(companies.map((c) => c.name));
-  const real = [...names]
-    .filter((name) => REAL_CUSTOMER.test(name))
-    .sort((a, b) => Number(!companyNames.has(a)) - Number(!companyNames.has(b)) || a.localeCompare(b));
-  const free = DEMO_COMPANY_NAMES.filter((name) => !names.has(name));
+  const names = new Set([...companyNames, ...driverCompanies.map((d) => d.company ?? "")]);
+  // The real customer's own company first, so it gets the account's name; then companies, then names only on drivers.
+  const rank = (name: string) => (companyNames.has(name) ? (REAL_CUSTOMER.test(name) ? 0 : 1) : 2);
+  const toRename = [...names]
+    .filter((name) => name && !isInventedCompany(name))
+    .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+  const freeTransit = TRANSIT_NAMES.filter((name) => !names.has(name));
+  const freeSchool = SCHOOL_NAMES.filter((name) => !names.has(name));
 
-  for (const [i, from] of real.entries()) {
-    const to = free[i] ?? `Demo Transit ${i + 1}`;
+  let extra = 0;
+  for (const from of toRename) {
+    const [first, second] = SCHOOL_LIKE.test(from) ? [freeSchool, freeTransit] : [freeTransit, freeSchool];
+    let to = first.shift() ?? second.shift();
+    while (!to || names.has(to)) to = `Demo Company ${++extra}`;
+    names.add(to);
     await db.$transaction([
       db.company.updateMany({ where: { name: from }, data: { name: to } }),
       db.driver.updateMany({ where: { company: from }, data: { company: to } }),
       db.reportSchedule.updateMany({ where: { companyFilter: from }, data: { companyFilter: to } }),
+    ]);
+  }
+  return toRename.length;
+}
+
+/**
+ * Rosters named after a real customer or place become "Route A", "Route B"... within their company,
+ * on the roster itself, its drivers and report schedules. Runs after the companies got their new names.
+ */
+async function renameRealRosters(db: PrismaClient): Promise<number> {
+  const [rosters, driverRosters] = await Promise.all([
+    db.roster.findMany({ select: { name: true, company: { select: { name: true } } } }),
+    db.driver.findMany({ where: { roster: { not: null } }, select: { company: true, roster: true }, distinct: ["company", "roster"] }),
+  ]);
+  const pairs = new Map<string, { company: string | null; roster: string }>();
+  for (const r of rosters) pairs.set(`${r.company.name}\n${r.name}`, { company: r.company.name, roster: r.name });
+  for (const d of driverRosters) if (d.roster) pairs.set(`${d.company}\n${d.roster}`, { company: d.company, roster: d.roster });
+
+  const taken = new Set(pairs.keys());
+  const real = [...pairs.values()].filter((p) => REAL_ROSTER.test(p.roster)).sort((a, b) => a.roster.localeCompare(b.roster));
+  const routeName = (n: number) => `Route ${String.fromCharCode(65 + (n % 26))}${n >= 26 ? Math.floor(n / 26) : ""}`;
+  for (const { company, roster } of real) {
+    let n = 0;
+    while (taken.has(`${company}\n${routeName(n)}`)) n++;
+    const to = routeName(n);
+    taken.add(`${company}\n${to}`);
+    await db.$transaction([
+      ...(company ? [db.roster.updateMany({ where: { company: { name: company }, name: roster }, data: { name: to } })] : []),
+      db.driver.updateMany({ where: { company, roster }, data: { roster: to } }),
+      db.reportSchedule.updateMany({ where: { companyFilter: company, rosterFilter: roster }, data: { rosterFilter: to } }),
     ]);
   }
   return real.length;
