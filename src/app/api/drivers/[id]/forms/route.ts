@@ -1,14 +1,8 @@
 import { NextResponse } from "next/server";
-import { PDFDocument, PDFTextField, PDFCheckBox, PDFRadioGroup, PDFDropdown, PDFOptionList, PDFName } from "pdf-lib";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { getSessionUser } from "@/lib/auth";
-import {
-  PACKAGE_FORM_CARRIER_FIELD,
-  PACKAGE_FORM_FILE,
-  buildPackageFormTextFields,
-  type PdfFormFillContext,
-} from "@/lib/pdf-forms";
+import { PACKAGE_FORM_FILE, fillPackageForm } from "@/lib/pdf-forms";
 
 export const runtime = "nodejs";
 
@@ -24,12 +18,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const driver = await user.db.driver.findUnique({ where: { id }, include: { complianceForm: true } });
   if (!driver) return NextResponse.json({ error: "Driver not found" }, { status: 404 });
 
-  const [company, allCompanies] = await Promise.all([
-    driver.company ? user.db.company.findUnique({ where: { name: driver.company } }) : Promise.resolve(null),
-    user.db.company.findMany({ orderBy: { name: "asc" }, select: { name: true } }),
-  ]);
+  const company = driver.company ? await user.db.company.findUnique({ where: { name: driver.company } }) : null;
 
-  const ctx: PdfFormFillContext = {
+  const template = await readFile(path.join(process.cwd(), "public", "pdf-templates", PACKAGE_FORM_FILE));
+  const filledBytes = await fillPackageForm(template, {
     driver: {
       lastName: driver.lastName,
       firstName: driver.firstName,
@@ -42,75 +34,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     },
     companyName: driver.company,
     companyLegalName: company?.legalName ?? null,
+    companyAddress: company?.address ?? null,
     companyContactName: company?.contactName ?? null,
     companyContactPhone: company?.contactPhone ?? null,
     licenseExp: driver.complianceForm?.licenseExp ?? null,
-  };
-
-  const templatePath = path.join(process.cwd(), "public", "pdf-templates", PACKAGE_FORM_FILE);
-  const bytes = await readFile(templatePath);
-  const pdfDoc = await PDFDocument.load(bytes, { ignoreEncryption: true });
-  const form = pdfDoc.getForm();
-
-  // The template ships with a filled sample driver ("Emile Damors") baked
-  // into every field's default value — not just the ones we have real data
-  // for. Clear every field first so none of that sample data (address,
-  // examiner info, road-test results, etc.) leaks into the output.
-  for (const field of form.getFields()) {
-    try {
-      if (field instanceof PDFTextField) field.setText(undefined);
-      else if (field instanceof PDFCheckBox) field.uncheck();
-      else if (field instanceof PDFRadioGroup) field.clear();
-      else if (field instanceof PDFDropdown) field.clear();
-      else if (field instanceof PDFOptionList) field.clear();
-    } catch (err) {
-      console.error(`[pdf-forms] Failed to clear field "${field.getName()}":`, err);
-    }
-  }
-
-  const values = buildPackageFormTextFields(ctx);
-  for (const [fieldName, value] of Object.entries(values)) {
-    if (!value) continue;
-    try {
-      form.getTextField(fieldName).setText(value);
-    } catch (err) {
-      console.error(`[pdf-forms] Failed to set field "${fieldName}":`, err);
-    }
-  }
-
-  try {
-    const carrierField = form.getDropdown(PACKAGE_FORM_CARRIER_FIELD);
-    // Replace the template's pre-recorded carrier list with our own
-    // companies — the driver's own company always included, even if it
-    // isn't a formally registered Company record.
-    const companyNames = allCompanies.map((c) => c.name);
-    if (ctx.companyName && !companyNames.includes(ctx.companyName)) companyNames.push(ctx.companyName);
-    companyNames.sort((a, b) => a.localeCompare(b));
-    carrierField.setOptions(companyNames);
-    if (ctx.companyName) carrierField.select(ctx.companyName);
-  } catch (err) {
-    console.error(`[pdf-forms] Failed to set carrier options:`, err);
-  }
-
-  // The template ships a "Calculate" JavaScript action on Federal ID Number
-  // that derives it (and 19-A Business ID) by splitting the Carrier Name
-  // dropdown's value on "+" (its original options encoded both IDs as
-  // "<fedId>+<19aId>"). Now that the dropdown holds real company names with
-  // no "+", that script would overwrite whatever the examiner types with
-  // garbage every time Acrobat recalculates the form — so it's removed.
-  try {
-    form.getTextField("C_Fed").acroField.dict.delete(PDFName.of("AA"));
-  } catch (err) {
-    console.error(`[pdf-forms] Failed to remove C_Fed's calculate script:`, err);
-  }
-
-  // Deliberately not flattened: the remaining fields (accident history,
-  // road-test results, examiner/SBDI certification, vehicle assignment,
-  // driver home address) still need to be filled by hand, so the output
-  // must stay a live, fillable PDF.
-  form.updateFieldAppearances();
-
-  const filledBytes = await pdfDoc.save();
+  });
   const namePart = sanitizeFilenamePart(`${driver.lastName}_${driver.firstName}`);
 
   return new NextResponse(new Uint8Array(filledBytes), {
